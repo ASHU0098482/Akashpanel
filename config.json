@@ -1,6 +1,6 @@
 {
-  "status": "online",
-  "maintenance_message": "VIP Panel is currently under maintenance. Please check back later.",
+  "status": "maintenance",
+  "maintenance_message": "📢 নতুন প্রিমিয়াম প্যানেল অফার!\n\nনতুন প্রিমিয়াম প্যানেল এসেছে মাত্র ২০০০ টাকায়! প্রিমিয়াম প্যানেল নিতে এখনই আমাদের সাথে যোগাযোগ করুন।",
   "app_name": "VIP PANEL",
   "show_notice": true,
   "notice_title": "📢 নতুন প্রিমিয়াম প্যানেল অফার!",
