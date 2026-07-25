@@ -1,6 +1,6 @@
 {
-  "status": "maintenance",
-  "maintenance_message": "সকল ক্লায়েন্টকে ৮০০ টাকা পেমেন্ট করতে হবে।",
+  "status": "online",
+  "maintenance_message": "VIP Panel is currently under maintenance. Please check back later.",
   "app_name": "VIP PANEL",
   "keyauth_owner_id": "8Z9qRQ2zph",
   "keyauth_version": "1.0",
