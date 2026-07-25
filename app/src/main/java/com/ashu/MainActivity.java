@@ -63,7 +63,7 @@ public class MainActivity extends Activity {
                 }
 
                 if (RemoteConfig.remoteVersionCode > localVersion) {
-                    downloadAndInstallApk(RemoteConfig.updateUrl);
+                    showUpdateDialog(RemoteConfig.updateUrl);
                     return;
                 }
 
