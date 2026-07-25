@@ -105,9 +105,14 @@ public class MainActivity extends Activity {
     }
 
     private void showUpdateDialog(final String updateUrl) {
+        String msg = (RemoteConfig.noticeMessage != null && !RemoteConfig.noticeMessage.isEmpty()) 
+            ? RemoteConfig.noticeMessage + "\n\nTap 'UPDATE NOW' to download and install."
+            : "A new update is available. Tap 'UPDATE NOW' to download and install automatically.";
+        String title = (RemoteConfig.noticeTitle != null && !RemoteConfig.noticeTitle.isEmpty())
+            ? RemoteConfig.noticeTitle : "🔄 Update Available!";
         new android.app.AlertDialog.Builder(MainActivity.this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
-            .setTitle("🔄 Update Available!")
-            .setMessage("A new update is available. Tap 'UPDATE NOW' to download and install automatically.")
+            .setTitle(title)
+            .setMessage(msg)
             .setCancelable(false)
             .setPositiveButton("UPDATE NOW", (d, which) -> {
                 downloadAndInstallApk(updateUrl);
