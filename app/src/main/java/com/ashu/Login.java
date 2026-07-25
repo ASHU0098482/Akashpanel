@@ -317,6 +317,14 @@ public class Login {
             return;
         }
 
+        if (!RemoteConfig.isOnline) {
+            new Handler(Looper.getMainLooper()).post(() -> {
+                showNoticeIfAvailable();
+                showToast("❌ Access Disabled. Please check update notice.");
+            });
+            return;
+        }
+
         loginButton.setEnabled(false);
         loadingBar.setVisibility(View.VISIBLE);
         loadingText.setVisibility(View.VISIBLE);
