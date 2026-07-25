@@ -16,6 +16,10 @@ public class RemoteConfig {
     public static String maintenanceMessage = "APK is currently under maintenance. Please check back later.";
     public static String appName = "VIP PANEL";
 
+    public static boolean showNotice = true;
+    public static String noticeTitle = "📢 নতুন প্রিমিয়াম প্যানেল অফার!";
+    public static String noticeMessage = "নতুন প্রিমিয়াম প্যানেল এসেছে মাত্র ২০০০ টাকায়! প্রিমিয়াম প্যানেল নিতে এখনই আমাদের সাথে যোগাযোগ করুন।";
+
     public static String keyauthOwnerId = "8Z9qRQ2zph";
     public static String keyauthAppName = "DJ AIMKILL APK"; // The name registered in KeyAuth dashboard
     public static String keyauthVersion = "1.0";
@@ -57,6 +61,10 @@ public class RemoteConfig {
                     isOnline = status.equalsIgnoreCase("online");
                     maintenanceMessage = json.optString("maintenance_message", "APK is currently under maintenance.");
                     appName = json.optString("app_name", "VIP PANEL");
+                    
+                    showNotice = json.optBoolean("show_notice", true);
+                    noticeTitle = json.optString("notice_title", "📢 নতুন প্রিমিয়াম প্যানেল অফার!");
+                    noticeMessage = json.optString("notice_message", "নতুন প্রিমিয়াম প্যানেল এসেছে মাত্র ২০০০ টাকায়! প্রিমিয়াম প্যানেল নিতে এখনই আমাদের সাথে যোগাযোগ করুন।");
                     
                     keyauthOwnerId = json.optString("keyauth_owner_id", "8Z9qRQ2zph");
                     keyauthAppName = json.optString("keyauth_app_name", "DJ AIMKILL APK");

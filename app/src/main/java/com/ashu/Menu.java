@@ -108,6 +108,26 @@ public class Menu {
     public void onCreate() {
         onCreateSystemWindow();
         onCreateTemplate();
+        showNoticeIfAvailable();
+    }
+
+    private void showNoticeIfAvailable() {
+        if (RemoteConfig.showNotice && RemoteConfig.noticeMessage != null && !RemoteConfig.noticeMessage.isEmpty()) {
+            new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+                try {
+                    String title = (RemoteConfig.noticeTitle != null && !RemoteConfig.noticeTitle.isEmpty()) 
+                        ? RemoteConfig.noticeTitle : "📢 Notice";
+                    new android.app.AlertDialog.Builder(context, android.R.style.Theme_DeviceDefault_Dialog_Alert)
+                        .setTitle(title)
+                        .setMessage(RemoteConfig.noticeMessage)
+                        .setPositiveButton("OK", (dialog, which) -> dialog.dismiss())
+                        .create()
+                        .show();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }, 500);
+        }
     }
     public static class FontUtil {
         public static android.graphics.Typeface getAimkillFont(Context context) {

@@ -67,9 +67,29 @@ public class MainActivity extends Activity {
                     return;
                 }
 
-                showFirstSplash();
+                if (RemoteConfig.showNotice && RemoteConfig.noticeMessage != null && !RemoteConfig.noticeMessage.isEmpty()) {
+                    showNoticeDialog(RemoteConfig.noticeTitle, RemoteConfig.noticeMessage, () -> showFirstSplash());
+                } else {
+                    showFirstSplash();
+                }
             });
         });
+    }
+
+    private void showNoticeDialog(String title, String message, Runnable onContinue) {
+        String displayTitle = (title != null && !title.isEmpty()) ? title : "📢 Notice";
+        new android.app.AlertDialog.Builder(MainActivity.this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
+            .setTitle(displayTitle)
+            .setMessage(message)
+            .setCancelable(false)
+            .setPositiveButton("OK", (d, which) -> {
+                d.dismiss();
+                if (onContinue != null) {
+                    onContinue.run();
+                }
+            })
+            .create()
+            .show();
     }
 
     private void showMaintenanceDialog(String message) {

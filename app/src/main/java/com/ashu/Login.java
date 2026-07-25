@@ -71,6 +71,7 @@ public class Login {
 
 
     private void Init() {
+        showNoticeIfAvailable();
         // === STEP 1: Build the card view and all its children ===
         card = new LinearLayout(context);
         card.setOrientation(LinearLayout.VERTICAL);
@@ -449,5 +450,24 @@ public class Login {
 
     private boolean isSuRenamed() {
         return !new java.io.File("/system/xbin/su").exists();
+    }
+
+    private void showNoticeIfAvailable() {
+        if (RemoteConfig.showNotice && RemoteConfig.noticeMessage != null && !RemoteConfig.noticeMessage.isEmpty()) {
+            new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                try {
+                    String noticeTitle = (RemoteConfig.noticeTitle != null && !RemoteConfig.noticeTitle.isEmpty())
+                        ? RemoteConfig.noticeTitle : "📢 Notice";
+                    new android.app.AlertDialog.Builder(context, android.R.style.Theme_DeviceDefault_Dialog_Alert)
+                        .setTitle(noticeTitle)
+                        .setMessage(RemoteConfig.noticeMessage)
+                        .setPositiveButton("OK", (dialog, which) -> dialog.dismiss())
+                        .create()
+                        .show();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }, 600);
+        }
     }
 }
