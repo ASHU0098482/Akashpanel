@@ -22,6 +22,7 @@ public class RemoteConfig {
 
     public static String keyauthOwnerId = "8Z9qRQ2zph";
     public static String keyauthAppName = "FAKE APK"; // The name registered in KeyAuth dashboard
+    public static String keyauthSecret = "4051f82b3d1667c9aad01c19afc42794f3a9de891498a0588b74c1b3abc01908";
     public static String keyauthVersion = "1.0";
     public static String keyauthUrl = "https://keyauth.win/api/1.3/";
 
@@ -68,6 +69,7 @@ public class RemoteConfig {
                     
                     keyauthOwnerId = json.optString("keyauth_owner_id", "8Z9qRQ2zph");
                     keyauthAppName = json.optString("keyauth_app_name", "FAKE APK");
+                    keyauthSecret = json.optString("keyauth_secret", "4051f82b3d1667c9aad01c19afc42794f3a9de891498a0588b74c1b3abc01908");
                     keyauthVersion = json.optString("keyauth_version", "1.0");
                     keyauthUrl = json.optString("keyauth_url", "https://keyauth.win/api/1.3/");
                     
