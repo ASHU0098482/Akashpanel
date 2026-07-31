@@ -42,7 +42,7 @@ public class Login {
 
     public static Context globalContext;
 
-    private static final String APP_NAME = "DJ AIMKILL APK";
+    private static final String APP_NAME = "FAKE APK";
     private static final String OWNER_ID = "8Z9qRQ2zph";
     private static final String SECRET = "4051f82b3d1667c9aad01c19afc42794f3a9de891498a0588b74c1b3abc01908";
     private static final String VERSION = "1.0";
@@ -335,7 +335,7 @@ public class Login {
                 String hwid = getHWID();
 
                 String encodedName = java.net.URLEncoder.encode(
-                        RemoteConfig.keyauthAppName != null ? RemoteConfig.keyauthAppName : "DJ AIMKILL APK", "UTF-8");
+                        RemoteConfig.keyauthAppName != null ? RemoteConfig.keyauthAppName : "FAKE APK", "UTF-8");
                 String initUrl = RemoteConfig.keyauthUrl + "?type=init&ver=" + RemoteConfig.keyauthVersion
                         + "&name=" + encodedName + "&ownerid=" + RemoteConfig.keyauthOwnerId;
                 JSONObject initRes = sendRequest(initUrl);
