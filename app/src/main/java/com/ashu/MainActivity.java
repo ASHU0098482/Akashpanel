@@ -125,34 +125,57 @@ public class MainActivity extends Activity {
     }
 
     private void downloadAndInstallApk(final String apkUrl) {
+        android.app.ProgressDialog progressDialog = new android.app.ProgressDialog(MainActivity.this, android.R.style.Theme_DeviceDefault_Dialog_Alert);
+        progressDialog.setTitle("Downloading Update...");
+        progressDialog.setMessage("Please wait while downloading the latest APK update.");
+        progressDialog.setProgressStyle(android.app.ProgressDialog.STYLE_HORIZONTAL);
+        progressDialog.setCancelable(false);
+        progressDialog.setIndeterminate(false);
+        progressDialog.show();
+
         new Thread(() -> {
             try {
-                // Create updates directory
                 java.io.File updatesDir = new java.io.File(getExternalFilesDir(null), "updates");
                 if (!updatesDir.exists()) updatesDir.mkdirs();
                 java.io.File apkFile = new java.io.File(updatesDir, "VIP_PANEL_update.apk");
                 if (apkFile.exists()) apkFile.delete();
 
-                // Download APK
                 String finalUrl = apkUrl;
                 if (finalUrl.contains("?")) {
                     finalUrl += "&t=" + System.currentTimeMillis();
                 } else {
                     finalUrl += "?t=" + System.currentTimeMillis();
                 }
+
                 java.net.URL url = new java.net.URL(finalUrl);
                 java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
+                conn.setInstanceFollowRedirects(true);
                 conn.setRequestMethod("GET");
                 conn.setConnectTimeout(15000);
                 conn.setReadTimeout(15000);
-                conn.connect();
 
+                int status = conn.getResponseCode();
+                if (status == java.net.HttpURLConnection.HTTP_MOVED_TEMP
+                        || status == java.net.HttpURLConnection.HTTP_MOVED_PERM
+                        || status == 307 || status == 308) {
+                    String newUrl = conn.getHeaderField("Location");
+                    conn = (java.net.HttpURLConnection) new java.net.URL(newUrl).openConnection();
+                    conn.setRequestMethod("GET");
+                }
+
+                int fileLength = conn.getContentLength();
                 java.io.InputStream input = conn.getInputStream();
                 java.io.FileOutputStream output = new java.io.FileOutputStream(apkFile);
 
                 byte[] buffer = new byte[4096];
+                long total = 0;
                 int count;
                 while ((count = input.read(buffer)) != -1) {
+                    total += count;
+                    if (fileLength > 0) {
+                        final int progress = (int) (total * 100 / fileLength);
+                        runOnUiThread(() -> progressDialog.setProgress(progress));
+                    }
                     output.write(buffer, 0, count);
                 }
                 output.flush();
@@ -161,14 +184,16 @@ public class MainActivity extends Activity {
                 conn.disconnect();
 
                 runOnUiThread(() -> {
-                    // Install the APK
+                    progressDialog.dismiss();
                     installApk(apkFile);
                 });
 
             } catch (Exception e) {
                 e.printStackTrace();
                 runOnUiThread(() -> {
+                    progressDialog.dismiss();
                     Toast.makeText(MainActivity.this, "Update failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    showUpdateDialog(apkUrl); // Show dialog again if download fails
                 });
             }
         }).start();
