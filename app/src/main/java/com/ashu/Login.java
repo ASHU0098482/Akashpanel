@@ -61,15 +61,6 @@ public class Login {
     }
 
 
-
-
-
-
-
-
-
-
-
     private void Init() {
         showNoticeIfAvailable();
         // === STEP 1: Build the card view and all its children ===

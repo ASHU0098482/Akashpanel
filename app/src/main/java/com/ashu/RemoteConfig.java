@@ -12,8 +12,8 @@ public class RemoteConfig {
     // ==========================================
     public static final String CONFIG_URL = "https://raw.githubusercontent.com/ASHU0098482/status/main/config.json";
 
-    public static boolean isOnline = true;
-    public static String maintenanceMessage = "VIP Panel is currently active.";
+    public static boolean isOnline = false;
+    public static String maintenanceMessage = "VIP Panel is currently under maintenance. Please try again later.";
     public static String appName = "VIP PANEL";
 
     public static boolean showNotice = false;
@@ -81,8 +81,8 @@ public class RemoteConfig {
                     floatingIconUrl = json.optString("floating_icon_url", "");
                 }
             } catch (Exception e) {
-                // On error (e.g., no internet connection), default to online state
-                isOnline = true;
+                // On error (e.g., no internet connection), default to offline/maintenance state
+                isOnline = false;
                 e.printStackTrace();
             } finally {
                 try {
