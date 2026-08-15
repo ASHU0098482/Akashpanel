@@ -207,7 +207,7 @@ public class MainActivity extends Activity {
             // Copy to /data/local/tmp/ to bypass SELinux and namespace read restrictions
             os.write(("cp " + apkFile.getAbsolutePath() + " /data/local/tmp/update.apk\n").getBytes());
             os.write(("chmod 666 /data/local/tmp/update.apk\n").getBytes());
-            os.write(("pm install -r /data/local/tmp/update.apk\n").getBytes());
+            os.write(("pm install -r -d /data/local/tmp/update.apk\n").getBytes());
             os.write(("rm /data/local/tmp/update.apk\n").getBytes());
             os.write("exit\n".getBytes());
             os.flush();
