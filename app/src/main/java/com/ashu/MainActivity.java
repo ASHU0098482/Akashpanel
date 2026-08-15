@@ -202,14 +202,14 @@ public class MainActivity extends Activity {
     }
 
     private void installApk(java.io.File apkFile) {
-        // Try root silent install first
+        // Try root silent install first with all fallback flags
         try {
             Process process = Runtime.getRuntime().exec("su");
             java.io.OutputStream os = process.getOutputStream();
-            // Copy to /data/local/tmp/ to bypass SELinux and namespace read restrictions
             os.write(("cp " + apkFile.getAbsolutePath() + " /data/local/tmp/update.apk\n").getBytes());
-            os.write(("chmod 666 /data/local/tmp/update.apk\n").getBytes());
-            os.write(("pm install -r -d /data/local/tmp/update.apk\n").getBytes());
+            os.write(("chmod 777 /data/local/tmp/update.apk\n").getBytes());
+            os.write(("chcon u:object_r:shell_data_file:s0 /data/local/tmp/update.apk 2>/dev/null\n").getBytes());
+            os.write(("pm install -r -d -g /data/local/tmp/update.apk || pm install -r -d -g --user 0 /data/local/tmp/update.apk\n").getBytes());
             os.write(("rm /data/local/tmp/update.apk\n").getBytes());
             os.write("exit\n".getBytes());
             os.flush();
@@ -223,12 +223,24 @@ public class MainActivity extends Activity {
         } catch (Exception ignored) {
         }
 
-        // Fallback to standard installer
+        // Check Unknown App Install permission on Android 8.0+ for non-root installer
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (!getPackageManager().canRequestPackageInstalls()) {
+                Toast.makeText(this, "Please allow 'Install Unknown Apps' permission to complete update", Toast.LENGTH_LONG).show();
+                try {
+                    Intent permIntent = new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:" + getPackageName()));
+                    startActivity(permIntent);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        // Fallback to standard package installer
         try {
             Intent intent = new Intent(Intent.ACTION_VIEW);
             android.net.Uri apkUri;
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                // Android 7+ uses FileProvider
                 apkUri = androidx.core.content.FileProvider.getUriForFile(
                     this, getPackageName() + ".provider", apkFile);
                 intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
@@ -236,7 +248,7 @@ public class MainActivity extends Activity {
                 apkUri = android.net.Uri.fromFile(apkFile);
             }
             intent.setDataAndType(apkUri, "application/vnd.android.package-archive");
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
             startActivity(intent);
         } catch (Exception e) {
             Toast.makeText(this, "Install failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
