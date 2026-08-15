@@ -47,8 +47,8 @@ public class Menu {
 
     // Variables Menu
     private int buttonClick = 0;
-    public static int PrimaryColor = 0xFFCC0000; // yellow
-    public static int TabSelectedColor = 0xFFCC0000; // Slightly lighter red for selected tabs
+    public static int PrimaryColor = 0xFFA855F7; // purple accent
+    public static int TabSelectedColor = 0xFFA855F7; // purple accent for selected tabs
     private static Context context;
     private static Utils utils;
     private native String imageBase64();
@@ -144,7 +144,7 @@ public class Menu {
         GradientDrawable gradientDrawable_container = new GradientDrawable();
         gradientDrawable_container.setColor(0xDC151515); // Semi-transparent dark grey
         gradientDrawable_container.setCornerRadius(utils.FixDP(12));
-        gradientDrawable_container.setStroke(utils.FixDP(2), 0xFFCC0000); // Glowing Red Accent Border
+        gradientDrawable_container.setStroke(utils.FixDP(2), PrimaryColor); // Glowing Purple Accent Border
 
         LinearLayout container = new LinearLayout(context);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
