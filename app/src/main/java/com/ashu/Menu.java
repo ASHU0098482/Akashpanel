@@ -188,11 +188,29 @@ public class Menu {
             icon_cheat.setImageDrawable(placeholderDrawable);
         }
         if (RemoteConfig.floatingIconUrl != null && !RemoteConfig.floatingIconUrl.isEmpty()) {
+            String floatUrl = RemoteConfig.floatingIconUrl;
+            if (floatUrl.contains("?")) {
+                floatUrl += "&t=" + System.currentTimeMillis();
+            } else {
+                floatUrl += "?t=" + System.currentTimeMillis();
+            }
             com.bumptech.glide.Glide.with(context)
-                    .load(RemoteConfig.floatingIconUrl)
-                    .placeholder(placeholderDrawable)
-                    .error(placeholderDrawable)
-                    .into(icon_cheat);
+                    .asBitmap()
+                    .load(floatUrl)
+                    .diskCacheStrategy(com.bumptech.glide.load.engine.DiskCacheStrategy.NONE)
+                    .skipMemoryCache(true)
+                    .into(new com.bumptech.glide.request.target.CustomTarget<android.graphics.Bitmap>() {
+                        @Override
+                        public void onResourceReady(@androidx.annotation.NonNull android.graphics.Bitmap resource, @androidx.annotation.Nullable com.bumptech.glide.request.transition.Transition<? super android.graphics.Bitmap> transition) {
+                            android.graphics.Bitmap transparentBitmap = Utils.makeBlackTransparent(resource);
+                            if (transparentBitmap != null) {
+                                logoBitmap = transparentBitmap;
+                                icon_cheat.setImageBitmap(logoBitmap);
+                            }
+                        }
+                        @Override
+                        public void onLoadCleared(@androidx.annotation.Nullable android.graphics.drawable.Drawable placeholder) {}
+                    });
         }
         GradientDrawable iconBackground = new GradientDrawable();
         iconBackground.setShape(GradientDrawable.OVAL);
