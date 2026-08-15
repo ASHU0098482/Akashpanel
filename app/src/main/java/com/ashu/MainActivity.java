@@ -12,8 +12,10 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.provider.Settings;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.view.View;
 
 
 public class MainActivity extends Activity {
@@ -243,51 +245,199 @@ public class MainActivity extends Activity {
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     private void showFirstSplash() {
-        // Root container
-      ////  LinearLayout layout = new LinearLayout(this);
-      //  layout.setOrientation(LinearLayout.VERTICAL);
-      //  layout.setGravity(Gravity.CENTER);
-      ////  layout.setBackgroundColor(Color.BLACK);
+        // === ANIMATED SPLASH INTRO (inspired by example video) ===
+        // Black fullscreen background
+        final android.widget.FrameLayout splashRoot = new android.widget.FrameLayout(this);
+        splashRoot.setBackgroundColor(Color.BLACK);
+        splashRoot.setLayoutParams(new android.widget.FrameLayout.LayoutParams(
+                android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
+                android.widget.FrameLayout.LayoutParams.MATCH_PARENT));
 
-        // GIF view (full screen)
-       // ImageView gifView = new ImageView(this);
-      //  LinearLayout.LayoutParams gifParams = new LinearLayout.LayoutParams(
-      //          LinearLayout.LayoutParams.MATCH_PARENT,
-        //        LinearLayout.LayoutParams.MATCH_PARENT
-       // );
-     //   gifView.setLayoutParams(gifParams);
-      //  gifView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        // --- PHASE 1: Logo in center, starts small and zooms in ---
+        final ImageView logoView = new ImageView(this);
+        android.widget.FrameLayout.LayoutParams logoParams = new android.widget.FrameLayout.LayoutParams(
+                dpToPx(180), dpToPx(180));
+        logoParams.gravity = android.view.Gravity.CENTER;
+        logoView.setLayoutParams(logoParams);
+        logoView.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        logoView.setAlpha(0f);
+        logoView.setScaleX(0.15f);
+        logoView.setScaleY(0.15f);
+        splashRoot.addView(logoView);
 
-       // layout.addView(gifView);
-     //   setContentView(layout);
-
-        // Load your GIF from URL
-      //  Glide.with(this)
-       //         .asGif()
-          //      .load("https://media.giphy.com/media/PNlNcLUSK5tbE5a973/giphy.gif") // 🔗 replace with your gif url
-        ///        .into(gifView);
-
-        // After 4s → go check permission
-        new Handler().postDelayed(this::checkOverlayPermission, 1000);
-    }
-
-
-    private void animateTypewriter(TextView textView, String fullText, int delay) {
-        final Handler handler = new Handler();
-        final int[] index = {0};
-
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                if (index[0] <= fullText.length()) {
-                    textView.setText(fullText.substring(0, index[0]));
-                    textView.setShadowLayer(25, 0, 0, Color.CYAN); // neon glow refresh
-                    index[0]++;
-                    handler.postDelayed(this, delay);
-                }
+        // Load logo from remote config or fallback
+        String logoUrl = null;
+        if (com.ashu.RemoteConfig.logoUrl != null && !com.ashu.RemoteConfig.logoUrl.isEmpty()) {
+            logoUrl = com.ashu.RemoteConfig.logoUrl;
+            if (logoUrl.contains("?")) {
+                logoUrl += "&t=" + System.currentTimeMillis();
+            } else {
+                logoUrl += "?t=" + System.currentTimeMillis();
             }
-        }, delay);
+        }
+        if (logoUrl != null) {
+            com.bumptech.glide.Glide.with(this)
+                .asBitmap()
+                .load(logoUrl)
+                .diskCacheStrategy(com.bumptech.glide.load.engine.DiskCacheStrategy.NONE)
+                .skipMemoryCache(true)
+                .into(new com.bumptech.glide.request.target.CustomTarget<android.graphics.Bitmap>() {
+                    @Override
+                    public void onResourceReady(@androidx.annotation.NonNull android.graphics.Bitmap resource,
+                            @androidx.annotation.Nullable com.bumptech.glide.request.transition.Transition<? super android.graphics.Bitmap> transition) {
+                        android.graphics.Bitmap transparentBitmap = com.ashu.Utils.makeBlackTransparent(resource);
+                        logoView.setImageBitmap(transparentBitmap);
+                    }
+                    @Override
+                    public void onLoadCleared(@androidx.annotation.Nullable android.graphics.drawable.Drawable placeholder) {}
+                });
+        }
+
+        // --- PHASE 2: App name text (letter-by-letter) ---
+        final TextView splashText = new TextView(this);
+        // Get app name from remote config
+        String appName = (com.ashu.RemoteConfig.appName != null && !com.ashu.RemoteConfig.appName.isEmpty())
+                ? com.ashu.RemoteConfig.appName : "VIP PANEL";
+        splashText.setText("");
+        splashText.setTextSize(36);
+        splashText.setTextColor(Color.parseColor("#A855F7")); // Purple accent
+        splashText.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
+        splashText.setGravity(android.view.Gravity.CENTER);
+        splashText.setAlpha(0f);
+        // Neon glow shadow
+        splashText.setShadowLayer(30, 0, 0, Color.parseColor("#A855F7"));
+        android.widget.FrameLayout.LayoutParams textParams = new android.widget.FrameLayout.LayoutParams(
+                android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
+                android.widget.FrameLayout.LayoutParams.WRAP_CONTENT);
+        textParams.gravity = android.view.Gravity.CENTER;
+        textParams.topMargin = dpToPx(130);
+        splashText.setLayoutParams(textParams);
+        splashText.setLetterSpacing(0.15f);
+        splashRoot.addView(splashText);
+
+        // --- PHASE 3: Subtitle glow line ---
+        final View glowLine = new View(this);
+        android.widget.FrameLayout.LayoutParams glowParams = new android.widget.FrameLayout.LayoutParams(
+                0, dpToPx(2));
+        glowParams.gravity = android.view.Gravity.CENTER_HORIZONTAL | android.view.Gravity.CENTER_VERTICAL;
+        glowParams.topMargin = dpToPx(185);
+        glowLine.setLayoutParams(glowParams);
+        glowLine.setBackgroundColor(Color.parseColor("#A855F7"));
+        glowLine.setAlpha(0f);
+        splashRoot.addView(glowLine);
+
+        setContentView(splashRoot);
+
+        final Handler handler = new Handler();
+        final String finalAppName = appName;
+
+        // ====== ANIMATION SEQUENCE ======
+
+        // STEP 1: Logo zoom-in + fade-in (0ms - 800ms)
+        handler.postDelayed(() -> {
+            logoView.animate()
+                .alpha(1f)
+                .scaleX(1.0f)
+                .scaleY(1.0f)
+                .setDuration(800)
+                .setInterpolator(new android.view.animation.OvershootInterpolator(1.5f))
+                .start();
+        }, 200);
+
+        // STEP 2: Logo pulse glow effect (800ms - 1400ms)
+        handler.postDelayed(() -> {
+            logoView.animate()
+                .scaleX(1.15f)
+                .scaleY(1.15f)
+                .setDuration(300)
+                .withEndAction(() -> {
+                    logoView.animate()
+                        .scaleX(1.0f)
+                        .scaleY(1.0f)
+                        .setDuration(300)
+                        .start();
+                })
+                .start();
+        }, 1100);
+
+        // STEP 3: Logo shrinks up + text starts appearing letter by letter (1500ms+)
+        handler.postDelayed(() -> {
+            // Move logo up
+            logoView.animate()
+                .translationY(-dpToPx(60))
+                .scaleX(0.7f)
+                .scaleY(0.7f)
+                .setDuration(500)
+                .setInterpolator(new android.view.animation.DecelerateInterpolator())
+                .start();
+
+            // Start letter-by-letter text reveal
+            splashText.setAlpha(1f);
+            final int[] charIndex = {0};
+            final int letterDelay = 80; // ms per letter
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    if (charIndex[0] <= finalAppName.length()) {
+                        splashText.setText(finalAppName.substring(0, charIndex[0]));
+                        // Pulse the glow intensity
+                        float glowRadius = 20 + (charIndex[0] % 3) * 10;
+                        splashText.setShadowLayer(glowRadius, 0, 0, Color.parseColor("#A855F7"));
+                        charIndex[0]++;
+                        handler.postDelayed(this, letterDelay);
+                    }
+                }
+            }, 300);
+        }, 1600);
+
+        // STEP 4: Glow line expands (after text is fully revealed)
+        int textRevealDuration = 1600 + 300 + (appName.length() * 80) + 200;
+        handler.postDelayed(() -> {
+            glowLine.setAlpha(1f);
+            android.animation.ValueAnimator lineAnim = android.animation.ValueAnimator.ofInt(0, dpToPx(200));
+            lineAnim.setDuration(400);
+            lineAnim.setInterpolator(new android.view.animation.AccelerateDecelerateInterpolator());
+            lineAnim.addUpdateListener(animation -> {
+                int val = (int) animation.getAnimatedValue();
+                android.widget.FrameLayout.LayoutParams lp = (android.widget.FrameLayout.LayoutParams) glowLine.getLayoutParams();
+                lp.width = val;
+                glowLine.setLayoutParams(lp);
+            });
+            lineAnim.start();
+        }, textRevealDuration);
+
+        // STEP 5: Full neon glow pulse on text (peak moment)
+        handler.postDelayed(() -> {
+            // Intense glow pulse
+            android.animation.ValueAnimator glowAnim = android.animation.ValueAnimator.ofFloat(30f, 60f, 30f);
+            glowAnim.setDuration(600);
+            glowAnim.setRepeatCount(1);
+            glowAnim.addUpdateListener(animation -> {
+                float radius = (float) animation.getAnimatedValue();
+                splashText.setShadowLayer(radius, 0, 0, Color.parseColor("#A855F7"));
+            });
+            glowAnim.start();
+        }, textRevealDuration + 200);
+
+        // STEP 6: Fade out everything and proceed to login (after all animations)
+        int totalSplashDuration = textRevealDuration + 1200;
+        handler.postDelayed(() -> {
+            // Fade out all splash elements
+            splashRoot.animate()
+                .alpha(0f)
+                .setDuration(500)
+                .withEndAction(() -> {
+                    // Proceed to overlay permission check -> Login
+                    checkOverlayPermission();
+                })
+                .start();
+        }, totalSplashDuration);
     }
+
+    private int dpToPx(int dp) {
+        return (int) (dp * getResources().getDisplayMetrics().density);
+    }
+
 
     private void checkOverlayPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
