@@ -178,8 +178,7 @@ public class Menu {
         android.graphics.drawable.Drawable placeholderDrawable = null;
         try {
             byte[] decodeImageBase64 = android.util.Base64.decode(imageBase64(), android.util.Base64.DEFAULT);
-            android.graphics.Bitmap rawBitmap = android.graphics.BitmapFactory.decodeByteArray(decodeImageBase64, 0, decodeImageBase64.length);
-            logoBitmap = Utils.makeBlackTransparent(rawBitmap);
+            logoBitmap = android.graphics.BitmapFactory.decodeByteArray(decodeImageBase64, 0, decodeImageBase64.length);
             placeholderDrawable = new android.graphics.drawable.BitmapDrawable(context.getResources(), logoBitmap);
         } catch (Exception e) {
             e.printStackTrace();
@@ -202,9 +201,8 @@ public class Menu {
                     .into(new com.bumptech.glide.request.target.CustomTarget<android.graphics.Bitmap>() {
                         @Override
                         public void onResourceReady(@androidx.annotation.NonNull android.graphics.Bitmap resource, @androidx.annotation.Nullable com.bumptech.glide.request.transition.Transition<? super android.graphics.Bitmap> transition) {
-                            android.graphics.Bitmap transparentBitmap = Utils.makeBlackTransparent(resource);
-                            if (transparentBitmap != null) {
-                                logoBitmap = transparentBitmap;
+                            if (resource != null) {
+                                logoBitmap = resource;
                                 icon_cheat.setImageBitmap(logoBitmap);
                             }
                         }

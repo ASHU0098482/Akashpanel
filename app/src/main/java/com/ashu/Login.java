@@ -136,7 +136,7 @@ public class Login {
         TextView titleRed = new TextView(context);
         titleRed.setText(firstWord + "  ");
         titleRed.setTextSize(24);
-        titleRed.setTextColor(Color.RED);
+        titleRed.setTextColor(Color.parseColor("#A855F7"));
         titleRed.setTypeface(null, Typeface.BOLD);
 
         TextView titleWhite = new TextView(context);
@@ -232,7 +232,7 @@ public class Login {
                 new Utils(context).FixDP(15)
         );
         GradientDrawable btnBg = new GradientDrawable();
-        btnBg.setColor(Color.RED);
+        btnBg.setColor(Color.parseColor("#9333EA"));
         btnBg.setCornerRadius(new Utils(context).FixDP(50));
         loginButton.setBackground(btnBg);
 
@@ -250,11 +250,11 @@ public class Login {
 
         loadingBar = new ProgressBar(context);
         loadingBar.setVisibility(View.GONE);
-        loadingBar.getIndeterminateDrawable().setColorFilter(Color.RED, PorterDuff.Mode.SRC_IN);
+        loadingBar.getIndeterminateDrawable().setColorFilter(Color.parseColor("#A855F7"), PorterDuff.Mode.SRC_IN);
 
         loadingText = new TextView(context);
         loadingText.setText("Verifying License Key...");
-        loadingText.setTextColor(Color.RED);
+        loadingText.setTextColor(Color.parseColor("#A855F7"));
         loadingText.setTextSize(14);
         loadingText.setPadding(20, 0, 0, 0);
         loadingText.setVisibility(View.GONE);
