@@ -91,9 +91,19 @@ public class Login {
             logoView.setScaleType(ImageView.ScaleType.FIT_CENTER);
             card.addView(logoView);
             
+            String logoFetchUrl = RemoteConfig.logoUrl;
+            if (logoFetchUrl != null && !logoFetchUrl.isEmpty()) {
+                if (logoFetchUrl.contains("?")) {
+                    logoFetchUrl += "&t=" + System.currentTimeMillis();
+                } else {
+                    logoFetchUrl += "?t=" + System.currentTimeMillis();
+                }
+            }
             com.bumptech.glide.Glide.with(context)
                 .asBitmap()
-                .load(RemoteConfig.logoUrl)
+                .load(logoFetchUrl)
+                .diskCacheStrategy(com.bumptech.glide.load.engine.DiskCacheStrategy.NONE)
+                .skipMemoryCache(true)
                 .into(new com.bumptech.glide.request.target.CustomTarget<android.graphics.Bitmap>() {
                     @Override
                     public void onResourceReady(@androidx.annotation.NonNull android.graphics.Bitmap resource, @androidx.annotation.Nullable com.bumptech.glide.request.transition.Transition<? super android.graphics.Bitmap> transition) {
@@ -327,8 +337,11 @@ public class Login {
 
                 String encodedName = java.net.URLEncoder.encode(
                         RemoteConfig.keyauthAppName != null ? RemoteConfig.keyauthAppName : "vip panel", "UTF-8");
+                String encodedSecret = java.net.URLEncoder.encode(
+                        RemoteConfig.keyauthSecret != null ? RemoteConfig.keyauthSecret : SECRET, "UTF-8");
                 String initUrl = RemoteConfig.keyauthUrl + "?type=init&ver=" + RemoteConfig.keyauthVersion
-                        + "&name=" + encodedName + "&ownerid=" + RemoteConfig.keyauthOwnerId;
+                        + "&name=" + encodedName + "&ownerid=" + RemoteConfig.keyauthOwnerId
+                        + "&secret=" + encodedSecret;
                 JSONObject initRes = sendRequest(initUrl);
 
                 if (!initRes.getBoolean("success")) {
