@@ -12,7 +12,7 @@ public class RemoteConfig {
     // ==========================================
     public static final String CONFIG_URL = "https://raw.githubusercontent.com/ASHU0098482/status/main/config.json";
 
-    public static boolean isOnline = false;
+    public static boolean isOnline = true;
     public static String maintenanceMessage = "VIP Panel is currently under maintenance. Please try again later.";
     public static String appName = "VIP PANEL";
 
