@@ -21,8 +21,8 @@ public class RemoteConfig {
     public static String noticeMessage = "";
 
     public static String keyauthOwnerId = "8Z9qRQ2zph";
-    public static String keyauthAppName = "FAKE APK"; // The name registered in KeyAuth dashboard
-    public static String keyauthSecret = "4051f82b3d1667c9aad01c19afc42794f3a9de891498a0588b74c1b3abc01908";
+    public static String keyauthAppName = "vip panel"; // The name registered in KeyAuth dashboard
+    public static String keyauthSecret = "fddc19ec5be9ebee148b808beaa5dad04f803aac21cf6f4a224a5f832ef97dbd";
     public static String keyauthVersion = "1.0";
     public static String keyauthUrl = "https://keyauth.win/api/1.3/";
 

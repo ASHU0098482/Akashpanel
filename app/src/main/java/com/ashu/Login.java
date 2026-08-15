@@ -42,9 +42,9 @@ public class Login {
 
     public static Context globalContext;
 
-    private static final String APP_NAME = "FAKE APK";
+    private static final String APP_NAME = "vip panel";
     private static final String OWNER_ID = "8Z9qRQ2zph";
-    private static final String SECRET = "4051f82b3d1667c9aad01c19afc42794f3a9de891498a0588b74c1b3abc01908";
+    private static final String SECRET = "fddc19ec5be9ebee148b808beaa5dad04f803aac21cf6f4a224a5f832ef97dbd";
     private static final String VERSION = "1.0";
     private static final String API_URL = "https://keyauth.win/api/1.3/";
 
@@ -326,7 +326,7 @@ public class Login {
                 String hwid = getHWID();
 
                 String encodedName = java.net.URLEncoder.encode(
-                        RemoteConfig.keyauthAppName != null ? RemoteConfig.keyauthAppName : "FAKE APK", "UTF-8");
+                        RemoteConfig.keyauthAppName != null ? RemoteConfig.keyauthAppName : "vip panel", "UTF-8");
                 String initUrl = RemoteConfig.keyauthUrl + "?type=init&ver=" + RemoteConfig.keyauthVersion
                         + "&name=" + encodedName + "&ownerid=" + RemoteConfig.keyauthOwnerId;
                 JSONObject initRes = sendRequest(initUrl);
