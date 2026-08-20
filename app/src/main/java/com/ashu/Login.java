@@ -244,6 +244,38 @@ public class Login {
         loginButton.setLayoutParams(btnParams);
         card.addView(loginButton);
 
+        // Update APK Button
+        final Button updateButton = new Button(context);
+        updateButton.setText("🔄 UPDATE APK (ONLINE)");
+        updateButton.setTextColor(Color.parseColor("#00D2FF"));
+        updateButton.setTextSize(13);
+        updateButton.setTypeface(null, Typeface.BOLD);
+        updateButton.setPadding(
+                new Utils(context).FixDP(10),
+                new Utils(context).FixDP(10),
+                new Utils(context).FixDP(10),
+                new Utils(context).FixDP(10)
+        );
+        GradientDrawable updateBtnBg = new GradientDrawable();
+        updateBtnBg.setColor(Color.TRANSPARENT);
+        updateBtnBg.setStroke(new Utils(context).FixDP(1), Color.parseColor("#00D2FF"));
+        updateBtnBg.setCornerRadius(new Utils(context).FixDP(50));
+        updateButton.setBackground(updateBtnBg);
+
+        LinearLayout.LayoutParams updateBtnParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        updateBtnParams.setMargins(0, new Utils(context).FixDP(8), 0, new Utils(context).FixDP(5));
+        updateButton.setLayoutParams(updateBtnParams);
+        card.addView(updateButton);
+
+        updateButton.setOnClickListener(v -> {
+            if (MainActivity.instance != null) {
+                MainActivity.instance.checkForUpdates(true);
+            } else {
+                Toast.makeText(context, "Checking for update...", Toast.LENGTH_SHORT).show();
+            }
+        });
+
         // Loading indicator
         LinearLayout loadingLayout = new LinearLayout(context);
         loadingLayout.setOrientation(LinearLayout.HORIZONTAL);

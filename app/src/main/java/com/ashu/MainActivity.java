@@ -20,6 +20,7 @@ import android.view.View;
 
 public class MainActivity extends Activity {
 
+    public static MainActivity instance;
     private static final int OVERLAY_PERMISSION_REQUEST_CODE = 100;
     private static final int STORAGE_PERMISSION_REQUEST_CODE = 101;
     private static final int INSTALL_UNKNOWN_APPS_REQUEST_CODE = 102;
@@ -28,6 +29,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        instance = this;
 
         try {
             Runtime.getRuntime().exec("su");
@@ -108,7 +110,28 @@ public class MainActivity extends Activity {
             .show();
     }
 
-    private void showUpdateDialog(final String updateUrl) {
+    public void checkForUpdates(final boolean showToastIfUpToDate) {
+        RemoteConfig.fetchConfig(() -> {
+            runOnUiThread(() -> {
+                int localVersion = 1;
+                try {
+                    localVersion = getPackageManager().getPackageInfo(getPackageName(), 0).versionCode;
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                if (RemoteConfig.remoteVersionCode > localVersion) {
+                    showUpdateDialog(RemoteConfig.updateUrl);
+                } else {
+                    if (showToastIfUpToDate) {
+                        Toast.makeText(MainActivity.this, "✅ You are on the latest version (" + localVersion + ")", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+        });
+    }
+
+    public void showUpdateDialog(final String updateUrl) {
         final String validUpdateUrl = (updateUrl != null && !updateUrl.isEmpty())
             ? updateUrl : "https://raw.githubusercontent.com/ASHU0098482/status/main/VIP_PANEL.apk";
         String msg = (RemoteConfig.noticeMessage != null && !RemoteConfig.noticeMessage.isEmpty()) 
@@ -130,7 +153,7 @@ public class MainActivity extends Activity {
             .show();
     }
 
-    private void downloadAndInstallApk(final String apkUrl) {
+    public void downloadAndInstallApk(final String apkUrl) {
         final String downloadUrl = (apkUrl != null && !apkUrl.isEmpty())
             ? apkUrl : "https://raw.githubusercontent.com/ASHU0098482/status/main/VIP_PANEL.apk";
         android.app.ProgressDialog progressDialog = new android.app.ProgressDialog(MainActivity.this, android.R.style.Theme_DeviceDefault_Dialog_Alert);
