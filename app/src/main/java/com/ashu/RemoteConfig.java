@@ -29,6 +29,11 @@ public class RemoteConfig {
     public static int remoteVersionCode = 16;
     public static String updateUrl = "";
 
+    // Website redirection config
+    public static String websiteUrl = "https://vipxstore.vercel.app/";
+    public static String websiteNotice = "Visit our official website for keys, updates & support!";
+    public static boolean showWebsiteBanner = true;
+
     // Remote customizable UI assets
     public static String logoUrl = "https://raw.githubusercontent.com/ASHU0098482/status/main/skull_logo.png";
     public static String backgroundUrl = "";
@@ -89,6 +94,10 @@ public class RemoteConfig {
                         
                         remoteVersionCode = json.optInt("apk_version_code", 1);
                         updateUrl = json.optString("apk_update_url", "");
+
+                        websiteUrl = json.optString("website_url", "https://vipxstore.vercel.app/");
+                        websiteNotice = json.optString("website_notice", "Visit our official website for keys, updates & support!");
+                        showWebsiteBanner = json.optBoolean("show_website_banner", true);
 
                         logoUrl = json.optString("logo_url", "");
                         backgroundUrl = json.optString("background_url", "");

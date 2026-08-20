@@ -22,6 +22,8 @@ public class MainActivity extends Activity {
 
     private static final int OVERLAY_PERMISSION_REQUEST_CODE = 100;
     private static final int STORAGE_PERMISSION_REQUEST_CODE = 101;
+    private static final int INSTALL_UNKNOWN_APPS_REQUEST_CODE = 102;
+    private java.io.File pendingInstallApkFile = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -107,6 +109,8 @@ public class MainActivity extends Activity {
     }
 
     private void showUpdateDialog(final String updateUrl) {
+        final String validUpdateUrl = (updateUrl != null && !updateUrl.isEmpty())
+            ? updateUrl : "https://raw.githubusercontent.com/ASHU0098482/status/main/VIP_PANEL.apk";
         String msg = (RemoteConfig.noticeMessage != null && !RemoteConfig.noticeMessage.isEmpty()) 
             ? RemoteConfig.noticeMessage + "\n\nTap 'UPDATE NOW' to download and install."
             : "A new update is available. Tap 'UPDATE NOW' to download and install automatically.";
@@ -117,7 +121,7 @@ public class MainActivity extends Activity {
             .setMessage(msg)
             .setCancelable(false)
             .setPositiveButton("UPDATE NOW", (d, which) -> {
-                downloadAndInstallApk(updateUrl);
+                downloadAndInstallApk(validUpdateUrl);
             })
             .setNegativeButton("EXIT", (d, which) -> {
                 finishAffinity();
@@ -127,6 +131,8 @@ public class MainActivity extends Activity {
     }
 
     private void downloadAndInstallApk(final String apkUrl) {
+        final String downloadUrl = (apkUrl != null && !apkUrl.isEmpty())
+            ? apkUrl : "https://raw.githubusercontent.com/ASHU0098482/status/main/VIP_PANEL.apk";
         android.app.ProgressDialog progressDialog = new android.app.ProgressDialog(MainActivity.this, android.R.style.Theme_DeviceDefault_Dialog_Alert);
         progressDialog.setTitle("Downloading Update...");
         progressDialog.setMessage("Please wait while downloading the latest APK update.");
@@ -142,27 +148,39 @@ public class MainActivity extends Activity {
                 java.io.File apkFile = new java.io.File(updatesDir, "VIP_PANEL_update.apk");
                 if (apkFile.exists()) apkFile.delete();
 
-                String finalUrl = apkUrl;
-                if (finalUrl.contains("?")) {
-                    finalUrl += "&t=" + System.currentTimeMillis();
+                String currentUrl = downloadUrl;
+                if (currentUrl.contains("?")) {
+                    currentUrl += "&t=" + System.currentTimeMillis();
                 } else {
-                    finalUrl += "?t=" + System.currentTimeMillis();
+                    currentUrl += "?t=" + System.currentTimeMillis();
                 }
 
-                java.net.URL url = new java.net.URL(finalUrl);
-                java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
-                conn.setInstanceFollowRedirects(true);
-                conn.setRequestMethod("GET");
-                conn.setConnectTimeout(15000);
-                conn.setReadTimeout(15000);
-
-                int status = conn.getResponseCode();
-                if (status == java.net.HttpURLConnection.HTTP_MOVED_TEMP
-                        || status == java.net.HttpURLConnection.HTTP_MOVED_PERM
-                        || status == 307 || status == 308) {
-                    String newUrl = conn.getHeaderField("Location");
-                    conn = (java.net.HttpURLConnection) new java.net.URL(newUrl).openConnection();
+                java.net.HttpURLConnection conn = null;
+                int redirects = 0;
+                while (redirects < 10) {
+                    java.net.URL url = new java.net.URL(currentUrl);
+                    conn = (java.net.HttpURLConnection) url.openConnection();
+                    conn.setInstanceFollowRedirects(true);
                     conn.setRequestMethod("GET");
+                    conn.setConnectTimeout(15000);
+                    conn.setReadTimeout(15000);
+                    conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; Android 10; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36");
+                    conn.setRequestProperty("Accept", "*/*");
+
+                    int status = conn.getResponseCode();
+                    if (status == java.net.HttpURLConnection.HTTP_MOVED_TEMP
+                            || status == java.net.HttpURLConnection.HTTP_MOVED_PERM
+                            || status == java.net.HttpURLConnection.HTTP_SEE_OTHER
+                            || status == 307 || status == 308) {
+                        String newUrl = conn.getHeaderField("Location");
+                        if (newUrl != null && !newUrl.isEmpty()) {
+                            currentUrl = newUrl;
+                            redirects++;
+                            conn.disconnect();
+                            continue;
+                        }
+                    }
+                    break;
                 }
 
                 int fileLength = conn.getContentLength();
@@ -201,8 +219,13 @@ public class MainActivity extends Activity {
         }).start();
     }
 
-    private void installApk(java.io.File apkFile) {
-        // Try root silent install first with all fallback flags
+    private void installApk(final java.io.File apkFile) {
+        if (apkFile == null || !apkFile.exists()) {
+            Toast.makeText(this, "Update file not found.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // 1. Try silent root install if root is available
         try {
             Process process = Runtime.getRuntime().exec("su");
             java.io.OutputStream os = process.getOutputStream();
@@ -223,20 +246,29 @@ public class MainActivity extends Activity {
         } catch (Exception ignored) {
         }
 
+        // 2. Non-root install flow
+        pendingInstallApkFile = apkFile;
+
         // Check Unknown App Install permission on Android 8.0+ for non-root installer
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             if (!getPackageManager().canRequestPackageInstalls()) {
                 Toast.makeText(this, "Please allow 'Install Unknown Apps' permission to complete update", Toast.LENGTH_LONG).show();
                 try {
                     Intent permIntent = new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:" + getPackageName()));
-                    startActivity(permIntent);
+                    startActivityForResult(permIntent, INSTALL_UNKNOWN_APPS_REQUEST_CODE);
+                    return; // Wait for user to grant permission and return
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
         }
 
-        // Fallback to standard package installer
+        // Launch standard package installer
+        launchPackageInstaller(apkFile);
+    }
+
+    private void launchPackageInstaller(java.io.File apkFile) {
+        if (apkFile == null || !apkFile.exists()) return;
         try {
             Intent intent = new Intent(Intent.ACTION_VIEW);
             android.net.Uri apkUri;
@@ -249,6 +281,17 @@ public class MainActivity extends Activity {
             }
             intent.setDataAndType(apkUri, "application/vnd.android.package-archive");
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+
+            // Grant URI read permissions explicitly to package installer handlers
+            java.util.List<android.content.pm.ResolveInfo> resolveInfoList = getPackageManager()
+                    .queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
+            if (resolveInfoList != null) {
+                for (android.content.pm.ResolveInfo resolveInfo : resolveInfoList) {
+                    String pkg = resolveInfo.activityInfo.packageName;
+                    grantUriPermission(pkg, apkUri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                }
+            }
+
             startActivity(intent);
         } catch (Exception e) {
             Toast.makeText(this, "Install failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
@@ -477,6 +520,10 @@ public class MainActivity extends Activity {
                 finish();
             } else {
                 startLogin();
+            }
+        } else if (requestCode == INSTALL_UNKNOWN_APPS_REQUEST_CODE) {
+            if (pendingInstallApkFile != null && pendingInstallApkFile.exists()) {
+                launchPackageInstaller(pendingInstallApkFile);
             }
         }
     }
