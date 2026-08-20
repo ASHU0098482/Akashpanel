@@ -516,14 +516,14 @@ Java_com_ashu_Menu_OnDrawLoad(JNIEnv *env, jclass clazz, jobject draw_view, jobj
         draw.DrawText(Color::Cyan(), fpsText, fpsPos, 30.0f);
 
         if (pEspPlayer.espDrawFov) {
-            // Draw a Purple circle with thicker line (4.0 thickness) at center of screen.
+            // Draw a Sky Blue circle with thicker line (4.0 thickness) at center of screen.
             // Radius scales dynamically with "Adjust Headshot Rate" (pAimbotPlayer.aimbotFOV: 0-100)
             float radius = 50.0f + (pAimbotPlayer.aimbotFOV * 4.0f);
-            // Draw glowing outer layers
-            draw.DrawCircle(Color(168, 85, 247, 35), 8.0f, Vector2(draw.getWidth() / 2, draw.getHeight() / 2), radius + 2.0f);
-            draw.DrawCircle(Color(168, 85, 247, 75), 5.0f, Vector2(draw.getWidth() / 2, draw.getHeight() / 2), radius + 1.0f);
+            // Draw glowing outer layers in Sky Blue
+            draw.DrawCircle(Color(0, 210, 255, 35), 8.0f, Vector2(draw.getWidth() / 2, draw.getHeight() / 2), radius + 2.0f);
+            draw.DrawCircle(Color(0, 210, 255, 75), 5.0f, Vector2(draw.getWidth() / 2, draw.getHeight() / 2), radius + 1.0f);
             // Main circle
-            draw.DrawCircle(Color(168, 85, 247, 255), 4.0f, Vector2(draw.getWidth() / 2, draw.getHeight() / 2), radius);
+            draw.DrawCircle(Color(0, 210, 255, 255), 4.0f, Vector2(draw.getWidth() / 2, draw.getHeight() / 2), radius);
         }
 
         // --- Premium Intro Animation ---
@@ -559,7 +559,7 @@ Java_com_ashu_Menu_OnDrawLoad(JNIEnv *env, jclass clazz, jobject draw_view, jobj
                 float currentSize = 70.0f + (45.0f - 70.0f) * progress;
 
                 // Color interpolates
-                Color currentColor = Color(168, 85, 247, 255);
+                Color currentColor = Color(0, 210, 255, 255);
 
                 draw.DrawText(Color(0, 0, 0, 200), "VIP PANEL", Vector2(draw.getWidth() / 2 + 2, currentY + 2), currentSize);
                 draw.DrawText(currentColor, "VIP PANEL", Vector2(draw.getWidth() / 2, currentY), currentSize);
@@ -574,7 +574,7 @@ Java_com_ashu_Menu_OnDrawLoad(JNIEnv *env, jclass clazz, jobject draw_view, jobj
         if (pAimbotPlayer.enableAimbot && !showAnimation) {
             Vector2 welcomePos(draw.getWidth() / 2, 120);
             draw.DrawText(Color(0, 0, 0, 200), "VIP PANEL", Vector2(welcomePos.X + 2, welcomePos.Y + 2), 45.0f);
-            draw.DrawText(Color(168, 85, 247, 255), "VIP PANEL", welcomePos, 45.0f);
+            draw.DrawText(Color(0, 210, 255, 255), "VIP PANEL", welcomePos, 45.0f);
         }
 
         if (pAimbotPlayer.enableAimbot) {
