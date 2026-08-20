@@ -110,8 +110,7 @@ public class Login {
                 .into(new com.bumptech.glide.request.target.CustomTarget<android.graphics.Bitmap>() {
                     @Override
                     public void onResourceReady(@androidx.annotation.NonNull android.graphics.Bitmap resource, @androidx.annotation.Nullable com.bumptech.glide.request.transition.Transition<? super android.graphics.Bitmap> transition) {
-                        android.graphics.Bitmap transparentBitmap = Utils.makeBlackTransparent(resource);
-                        logoView.setImageBitmap(transparentBitmap);
+                        logoView.setImageBitmap(resource);
                     }
                     @Override
                     public void onLoadCleared(@androidx.annotation.Nullable android.graphics.drawable.Drawable placeholder) {
@@ -119,7 +118,7 @@ public class Login {
                 });
         }
 
-        // Title with red first word and white rest dynamically from RemoteConfig
+        // Title with sky blue first word and white rest dynamically from RemoteConfig
         LinearLayout titleLayout = new LinearLayout(context);
         titleLayout.setOrientation(LinearLayout.HORIZONTAL);
         titleLayout.setGravity(Gravity.CENTER);
@@ -139,7 +138,7 @@ public class Login {
         TextView titleRed = new TextView(context);
         titleRed.setText(firstWord + "  ");
         titleRed.setTextSize(24);
-        titleRed.setTextColor(Color.parseColor("#A855F7"));
+        titleRed.setTextColor(Color.parseColor("#00D2FF")); // Sky Blue Accent
         titleRed.setTypeface(null, Typeface.BOLD);
 
         TextView titleWhite = new TextView(context);
@@ -235,7 +234,7 @@ public class Login {
                 new Utils(context).FixDP(15)
         );
         GradientDrawable btnBg = new GradientDrawable();
-        btnBg.setColor(Color.parseColor("#9333EA"));
+        btnBg.setColor(Color.parseColor("#0284C7")); // Sky Blue Button
         btnBg.setCornerRadius(new Utils(context).FixDP(50));
         loginButton.setBackground(btnBg);
 
@@ -253,11 +252,11 @@ public class Login {
 
         loadingBar = new ProgressBar(context);
         loadingBar.setVisibility(View.GONE);
-        loadingBar.getIndeterminateDrawable().setColorFilter(Color.parseColor("#A855F7"), PorterDuff.Mode.SRC_IN);
+        loadingBar.getIndeterminateDrawable().setColorFilter(Color.parseColor("#00D2FF"), PorterDuff.Mode.SRC_IN);
 
         loadingText = new TextView(context);
         loadingText.setText("Verifying License Key...");
-        loadingText.setTextColor(Color.parseColor("#A855F7"));
+        loadingText.setTextColor(Color.parseColor("#00D2FF"));
         loadingText.setTextSize(14);
         loadingText.setPadding(20, 0, 0, 0);
         loadingText.setVisibility(View.GONE);

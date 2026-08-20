@@ -50,8 +50,8 @@ public class Menu {
 
     // Variables Menu
     private int buttonClick = 0;
-    public static int PrimaryColor = 0xFFA855F7; // purple accent
-    public static int TabSelectedColor = 0xFFA855F7; // purple accent for selected tabs
+    public static int PrimaryColor = 0xFF00D2FF; // Sky Blue accent
+    public static int TabSelectedColor = 0xFF00D2FF; // Sky Blue accent for selected tabs
     private static Context context;
     private static Utils utils;
 

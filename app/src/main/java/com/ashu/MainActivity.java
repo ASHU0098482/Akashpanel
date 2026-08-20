@@ -356,12 +356,12 @@ public class MainActivity extends Activity {
                 ? com.ashu.RemoteConfig.appName : "VIP PANEL";
         splashText.setText("");
         splashText.setTextSize(36);
-        splashText.setTextColor(Color.parseColor("#A855F7")); // Purple accent
+        splashText.setTextColor(Color.parseColor("#00D2FF")); // Sky Blue accent
         splashText.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
         splashText.setGravity(android.view.Gravity.CENTER);
         splashText.setAlpha(0f);
         // Neon glow shadow
-        splashText.setShadowLayer(30, 0, 0, Color.parseColor("#A855F7"));
+        splashText.setShadowLayer(30, 0, 0, Color.parseColor("#00D2FF"));
         android.widget.FrameLayout.LayoutParams textParams = new android.widget.FrameLayout.LayoutParams(
                 android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
                 android.widget.FrameLayout.LayoutParams.WRAP_CONTENT);
@@ -378,7 +378,7 @@ public class MainActivity extends Activity {
         glowParams.gravity = android.view.Gravity.CENTER_HORIZONTAL | android.view.Gravity.CENTER_VERTICAL;
         glowParams.topMargin = dpToPx(185);
         glowLine.setLayoutParams(glowParams);
-        glowLine.setBackgroundColor(Color.parseColor("#A855F7"));
+        glowLine.setBackgroundColor(Color.parseColor("#00D2FF"));
         glowLine.setAlpha(0f);
         splashRoot.addView(glowLine);
 
@@ -438,7 +438,7 @@ public class MainActivity extends Activity {
                         splashText.setText(finalAppName.substring(0, charIndex[0]));
                         // Pulse the glow intensity
                         float glowRadius = 20 + (charIndex[0] % 3) * 10;
-                        splashText.setShadowLayer(glowRadius, 0, 0, Color.parseColor("#A855F7"));
+                        splashText.setShadowLayer(glowRadius, 0, 0, Color.parseColor("#00D2FF"));
                         charIndex[0]++;
                         handler.postDelayed(this, letterDelay);
                     }
@@ -470,7 +470,7 @@ public class MainActivity extends Activity {
             glowAnim.setRepeatCount(1);
             glowAnim.addUpdateListener(animation -> {
                 float radius = (float) animation.getAnimatedValue();
-                splashText.setShadowLayer(radius, 0, 0, Color.parseColor("#A855F7"));
+                splashText.setShadowLayer(radius, 0, 0, Color.parseColor("#00D2FF"));
             });
             glowAnim.start();
         }, textRevealDuration + 200);
