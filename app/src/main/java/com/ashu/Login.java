@@ -491,7 +491,7 @@ public class Login {
         disclaimerCard.addView(divider);
 
         // --- 5. System & Compatibility Specs (Compact 2x2 Grid) ---
-        String apkVersion = "V45.0";
+        String apkVersion = "V46.0";
         try {
             android.content.pm.PackageInfo pInfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
             apkVersion = "V" + pInfo.versionName;

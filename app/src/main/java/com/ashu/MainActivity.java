@@ -122,10 +122,9 @@ public class MainActivity extends Activity {
 
                 if (RemoteConfig.remoteVersionCode > localVersion) {
                     showUpdateDialog(RemoteConfig.updateUrl);
-                } else {
-                    if (showToastIfUpToDate) {
-                        Toast.makeText(MainActivity.this, "✅ You are on the latest version (" + localVersion + ")", Toast.LENGTH_SHORT).show();
-                    }
+                } else if (showToastIfUpToDate) {
+                    // When user manually clicks "UPDATE APK", always show dialog allowing download of latest build
+                    showUpdateDialog(RemoteConfig.updateUrl);
                 }
             });
         });

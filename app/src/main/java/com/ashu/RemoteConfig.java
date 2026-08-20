@@ -42,10 +42,10 @@ public class RemoteConfig {
             BufferedReader reader = null;
             boolean success = false;
             
-            // Try primary GitHub raw URL first, fallback to jsDelivr CDN URL
+            // Use direct GitHub raw with fresh timestamp to avoid any caching
             String[] urlsToTry = new String[] {
-                CONFIG_URL + "?t=" + System.currentTimeMillis(),
-                "https://cdn.jsdelivr.net/gh/ASHU0098482/status@main/config.json?t=" + System.currentTimeMillis()
+                CONFIG_URL + "?t=" + System.currentTimeMillis() + "&rnd=" + (int)(Math.random() * 100000),
+                CONFIG_URL + "?nocache=" + System.currentTimeMillis()
             };
 
             for (String currentUrlStr : urlsToTry) {
@@ -53,12 +53,15 @@ public class RemoteConfig {
                     URL url = new URL(currentUrlStr);
                     conn = (HttpURLConnection) url.openConnection();
                     conn.setRequestMethod("GET");
+                    conn.setUseCaches(false);
+                    conn.setDefaultUseCaches(false);
                     conn.setConnectTimeout(6000);
                     conn.setReadTimeout(6000);
                     conn.setInstanceFollowRedirects(true);
                     conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; Android 10; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36");
                     conn.setRequestProperty("Cache-Control", "no-cache, no-store, must-revalidate");
                     conn.setRequestProperty("Pragma", "no-cache");
+                    conn.setRequestProperty("Expires", "0");
                     conn.setRequestProperty("Accept", "application/json");
 
                     int responseCode = conn.getResponseCode();
