@@ -26,8 +26,8 @@ public class Utils {
             int r = (color >> 16) & 0xFF;
             int g = (color >> 8) & 0xFF;
             int b = color & 0xFF;
-            // Make black or white background transparent
-            if ((r < 25 && g < 25 && b < 25) || (r > 220 && g > 220 && b > 220)) {
+            // Make black background transparent
+            if (r < 25 && g < 25 && b < 25) {
                 pixels[i] = 0x00000000;
             }
         }

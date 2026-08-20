@@ -80,17 +80,19 @@ public class Login {
         cardBg.setCornerRadius(new Utils(context).FixDP(20));
         card.setBackground(cardBg);
 
-        // Add remote logo if available
+        // Add logo
+        final ImageView logoView = new ImageView(context);
+        LinearLayout.LayoutParams logoParams = new LinearLayout.LayoutParams(
+                new Utils(context).FixDP(120),
+                new Utils(context).FixDP(120)
+        );
+        logoParams.setMargins(0, 0, 0, new Utils(context).FixDP(15));
+        logoView.setLayoutParams(logoParams);
+        logoView.setScaleType(ImageView.ScaleType.FIT_CENTER);
+        logoView.setImageResource(R.mipmap.ic_launcher);
+        card.addView(logoView);
+
         if (RemoteConfig.logoUrl != null && !RemoteConfig.logoUrl.isEmpty()) {
-            final ImageView logoView = new ImageView(context);
-            LinearLayout.LayoutParams logoParams = new LinearLayout.LayoutParams(
-                    new Utils(context).FixDP(120),
-                    new Utils(context).FixDP(120)
-            );
-            logoParams.setMargins(0, 0, 0, new Utils(context).FixDP(15));
-            logoView.setLayoutParams(logoParams);
-            logoView.setScaleType(ImageView.ScaleType.FIT_CENTER);
-            card.addView(logoView);
             
             String logoFetchUrl = RemoteConfig.logoUrl;
             if (logoFetchUrl != null && !logoFetchUrl.isEmpty()) {

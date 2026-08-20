@@ -318,6 +318,7 @@ public class MainActivity extends Activity {
         logoView.setAlpha(0f);
         logoView.setScaleX(0.15f);
         logoView.setScaleY(0.15f);
+        logoView.setImageResource(R.mipmap.ic_launcher);
         splashRoot.addView(logoView);
 
         // Load logo from remote config or fallback
