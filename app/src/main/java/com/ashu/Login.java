@@ -69,24 +69,24 @@ public class Login {
         card.setOrientation(LinearLayout.VERTICAL);
         card.setGravity(Gravity.CENTER_HORIZONTAL);
         card.setPadding(
-                new Utils(context).FixDP(25),
-                new Utils(context).FixDP(25),
-                new Utils(context).FixDP(25),
-                new Utils(context).FixDP(25)
+                new Utils(context).FixDP(20),
+                new Utils(context).FixDP(18),
+                new Utils(context).FixDP(20),
+                new Utils(context).FixDP(18)
         );
 
         GradientDrawable cardBg = new GradientDrawable();
         cardBg.setColor(Color.parseColor("#1b1b1b"));
-        cardBg.setCornerRadius(new Utils(context).FixDP(20));
+        cardBg.setCornerRadius(new Utils(context).FixDP(18));
         card.setBackground(cardBg);
 
         // Add logo
         final ImageView logoView = new ImageView(context);
         LinearLayout.LayoutParams logoParams = new LinearLayout.LayoutParams(
-                new Utils(context).FixDP(120),
-                new Utils(context).FixDP(120)
+                new Utils(context).FixDP(100),
+                new Utils(context).FixDP(100)
         );
-        logoParams.setMargins(0, 0, 0, new Utils(context).FixDP(15));
+        logoParams.setMargins(0, 0, 0, new Utils(context).FixDP(10));
         logoView.setLayoutParams(logoParams);
         logoView.setScaleType(ImageView.ScaleType.FIT_CENTER);
         logoView.setImageResource(R.mipmap.ic_launcher);
@@ -137,13 +137,13 @@ public class Login {
 
         TextView titleRed = new TextView(context);
         titleRed.setText(firstWord + "  ");
-        titleRed.setTextSize(24);
+        titleRed.setTextSize(22);
         titleRed.setTextColor(Color.parseColor("#00D2FF")); // Sky Blue Accent
         titleRed.setTypeface(null, Typeface.BOLD);
 
         TextView titleWhite = new TextView(context);
         titleWhite.setText(secondWord);
-        titleWhite.setTextSize(24);
+        titleWhite.setTextSize(22);
         titleWhite.setTextColor(Color.WHITE);
         titleWhite.setTypeface(null, Typeface.BOLD);
 
@@ -153,10 +153,10 @@ public class Login {
 
         subtitle = new TextView(context);
         subtitle.setText("FREE FIRE");
-        subtitle.setTextSize(14);
+        subtitle.setTextSize(13);
         subtitle.setTextColor(Color.LTGRAY);
         subtitle.setGravity(Gravity.CENTER);
-        subtitle.setPadding(0, 0, 0, new Utils(context).FixDP(15));
+        subtitle.setPadding(0, 0, 0, new Utils(context).FixDP(12));
         card.addView(subtitle);
 
         // Settings Layout (hidden by default)
@@ -203,15 +203,15 @@ public class Login {
         // License input
         inputLicense = new EditText(context);
         inputLicense.setHint("ENTER LICENSE KEY");
-        inputLicense.setTextSize(16);
+        inputLicense.setTextSize(15);
         inputLicense.setTextColor(Color.WHITE);
         inputLicense.setHintTextColor(Color.GRAY);
         inputLicense.setGravity(Gravity.CENTER);
         inputLicense.setPadding(
-                new Utils(context).FixDP(15),
-                new Utils(context).FixDP(12),
-                new Utils(context).FixDP(15),
-                new Utils(context).FixDP(12)
+                new Utils(context).FixDP(14),
+                new Utils(context).FixDP(11),
+                new Utils(context).FixDP(14),
+                new Utils(context).FixDP(11)
         );
         GradientDrawable inputBg = new GradientDrawable();
         inputBg.setCornerRadius(new Utils(context).FixDP(10));
@@ -226,12 +226,12 @@ public class Login {
         loginButton = new Button(context);
         loginButton.setText("LOGIN");
         loginButton.setTextColor(Color.WHITE);
-        loginButton.setTextSize(16);
+        loginButton.setTextSize(15);
         loginButton.setPadding(
-                new Utils(context).FixDP(15),
-                new Utils(context).FixDP(15),
-                new Utils(context).FixDP(15),
-                new Utils(context).FixDP(15)
+                new Utils(context).FixDP(12),
+                new Utils(context).FixDP(12),
+                new Utils(context).FixDP(12),
+                new Utils(context).FixDP(12)
         );
         GradientDrawable btnBg = new GradientDrawable();
         btnBg.setColor(Color.parseColor("#0284C7")); // Sky Blue Button
@@ -240,7 +240,7 @@ public class Login {
 
         LinearLayout.LayoutParams btnParams = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        btnParams.setMargins(0, new Utils(context).FixDP(15), 0, new Utils(context).FixDP(5));
+        btnParams.setMargins(0, new Utils(context).FixDP(12), 0, new Utils(context).FixDP(4));
         loginButton.setLayoutParams(btnParams);
         card.addView(loginButton);
 
@@ -248,13 +248,13 @@ public class Login {
         final Button updateButton = new Button(context);
         updateButton.setText("🔄 UPDATE APK (ONLINE)");
         updateButton.setTextColor(Color.parseColor("#00D2FF"));
-        updateButton.setTextSize(13);
+        updateButton.setTextSize(12.5f);
         updateButton.setTypeface(null, Typeface.BOLD);
         updateButton.setPadding(
-                new Utils(context).FixDP(10),
-                new Utils(context).FixDP(10),
-                new Utils(context).FixDP(10),
-                new Utils(context).FixDP(10)
+                new Utils(context).FixDP(8),
+                new Utils(context).FixDP(9),
+                new Utils(context).FixDP(8),
+                new Utils(context).FixDP(9)
         );
         GradientDrawable updateBtnBg = new GradientDrawable();
         updateBtnBg.setColor(Color.TRANSPARENT);
@@ -264,7 +264,7 @@ public class Login {
 
         LinearLayout.LayoutParams updateBtnParams = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        updateBtnParams.setMargins(0, new Utils(context).FixDP(8), 0, new Utils(context).FixDP(5));
+        updateBtnParams.setMargins(0, new Utils(context).FixDP(6), 0, new Utils(context).FixDP(4));
         updateButton.setLayoutParams(updateBtnParams);
         card.addView(updateButton);
 
@@ -312,18 +312,20 @@ public class Login {
 
         LinearLayout scrollContent = new LinearLayout(context);
         scrollContent.setOrientation(LinearLayout.VERTICAL);
-        scrollContent.setGravity(Gravity.CENTER_HORIZONTAL);
+        scrollContent.setGravity(Gravity.CENTER); // Perfectly centers horizontally & vertically
         scrollContent.setPadding(
                 new Utils(context).FixDP(16),
-                new Utils(context).FixDP(25),
+                new Utils(context).FixDP(20),
                 new Utils(context).FixDP(16),
-                new Utils(context).FixDP(25)
+                new Utils(context).FixDP(20)
         );
 
-        card.setLayoutParams(new LinearLayout.LayoutParams(
-                new Utils(context).FixDP(320),
+        LinearLayout.LayoutParams cardLayoutParam = new LinearLayout.LayoutParams(
+                new Utils(context).FixDP(300),
                 ViewGroup.LayoutParams.WRAP_CONTENT
-        ));
+        );
+        cardLayoutParam.gravity = Gravity.CENTER_HORIZONTAL;
+        card.setLayoutParams(cardLayoutParam);
 
         scrollContent.addView(card);
         scrollContent.addView(createDisclaimerCard());
@@ -355,7 +357,7 @@ public class Login {
 
             GradientDrawable cardBgOver = new GradientDrawable();
             cardBgOver.setColor(Color.parseColor("#E61b1b1b"));
-            cardBgOver.setCornerRadius(new Utils(context).FixDP(20));
+            cardBgOver.setCornerRadius(new Utils(context).FixDP(18));
             card.setBackground(cardBgOver);
 
             rootFrame.addView(scrollView);
@@ -392,7 +394,8 @@ public class Login {
                 new Utils(context).FixDP(300),
                 ViewGroup.LayoutParams.WRAP_CONTENT
         );
-        cardParams.setMargins(0, new Utils(context).FixDP(10), 0, new Utils(context).FixDP(16));
+        cardParams.gravity = Gravity.CENTER_HORIZONTAL;
+        cardParams.setMargins(0, new Utils(context).FixDP(12), 0, new Utils(context).FixDP(16));
         disclaimerCard.setLayoutParams(cardParams);
 
         // --- 1. Header: 🛡️ DISCLAIMERS ---
@@ -488,7 +491,7 @@ public class Login {
         disclaimerCard.addView(divider);
 
         // --- 5. System & Compatibility Specs (Compact 2x2 Grid) ---
-        String apkVersion = "V44.0";
+        String apkVersion = "V45.0";
         try {
             android.content.pm.PackageInfo pInfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
             apkVersion = "V" + pInfo.versionName;
