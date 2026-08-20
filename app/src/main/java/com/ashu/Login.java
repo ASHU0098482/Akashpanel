@@ -35,7 +35,6 @@ public class Login {
     private LinearLayout rootContainer, card;
     private EditText inputLicense;
     private Button loginButton;
-    private LinearLayout visitLayout;
     private TextView title, subtitle;
     private LinearLayout settingsLayout;
     private Switch suToggle;
@@ -265,97 +264,6 @@ public class Login {
         loadingLayout.addView(loadingText);
         card.addView(loadingLayout);
 
-        // Visit Website Banner
-        if (RemoteConfig.showWebsiteBanner) {
-            visitLayout = new LinearLayout(context);
-            visitLayout.setOrientation(LinearLayout.VERTICAL);
-            visitLayout.setGravity(Gravity.CENTER_HORIZONTAL);
-            visitLayout.setPadding(
-                    new Utils(context).FixDP(12),
-                    new Utils(context).FixDP(10),
-                    new Utils(context).FixDP(12),
-                    new Utils(context).FixDP(10)
-            );
-            GradientDrawable visitBg = new GradientDrawable();
-            visitBg.setColor(Color.parseColor("#1f1527"));
-            visitBg.setCornerRadius(new Utils(context).FixDP(14));
-            visitBg.setStroke(new Utils(context).FixDP(1), Color.parseColor("#A855F7"));
-            visitLayout.setBackground(visitBg);
-
-            LinearLayout.LayoutParams visitLayoutParams = new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-            visitLayoutParams.setMargins(0, new Utils(context).FixDP(10), 0, 0);
-            visitLayout.setLayoutParams(visitLayoutParams);
-
-            TextView visitNotice = new TextView(context);
-            String noticeTxt = (RemoteConfig.websiteNotice != null && !RemoteConfig.websiteNotice.isEmpty())
-                    ? RemoteConfig.websiteNotice : "Visit our official store for keys & updates!";
-            visitNotice.setText(noticeTxt);
-            visitNotice.setTextColor(Color.parseColor("#E9D5FF"));
-            visitNotice.setTextSize(12);
-            visitNotice.setGravity(Gravity.CENTER);
-            visitNotice.setPadding(0, 0, 0, new Utils(context).FixDP(8));
-            visitLayout.addView(visitNotice);
-
-            LinearLayout btnRow = new LinearLayout(context);
-            btnRow.setOrientation(LinearLayout.HORIZONTAL);
-            btnRow.setGravity(Gravity.CENTER);
-            btnRow.setLayoutParams(new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-
-            // VISIT button
-            Button visitBtn = new Button(context);
-            visitBtn.setText("VISIT");
-            visitBtn.setTextColor(Color.WHITE);
-            visitBtn.setTextSize(13);
-            visitBtn.setTypeface(null, Typeface.BOLD);
-            GradientDrawable visitBtnBg = new GradientDrawable();
-            visitBtnBg.setColor(Color.parseColor("#9333EA"));
-            visitBtnBg.setCornerRadius(new Utils(context).FixDP(25));
-            visitBtn.setBackground(visitBtnBg);
-
-            LinearLayout.LayoutParams vParams = new LinearLayout.LayoutParams(
-                    0, new Utils(context).FixDP(38), 1f);
-            vParams.setMargins(0, 0, new Utils(context).FixDP(6), 0);
-            visitBtn.setLayoutParams(vParams);
-            visitBtn.setOnClickListener(v -> {
-                try {
-                    String targetUrl = (RemoteConfig.websiteUrl != null && !RemoteConfig.websiteUrl.isEmpty())
-                            ? RemoteConfig.websiteUrl : "https://vipxstore.vercel.app/";
-                    Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(targetUrl));
-                    browserIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    context.startActivity(browserIntent);
-                } catch (Exception e) {
-                    showToast("Could not open browser: " + e.getMessage());
-                }
-            });
-
-            // CANCEL button
-            Button cancelBtn = new Button(context);
-            cancelBtn.setText("CANCEL");
-            cancelBtn.setTextColor(Color.parseColor("#D1D5DB"));
-            cancelBtn.setTextSize(13);
-            cancelBtn.setTypeface(null, Typeface.BOLD);
-            GradientDrawable cancelBtnBg = new GradientDrawable();
-            cancelBtnBg.setColor(Color.parseColor("#374151"));
-            cancelBtnBg.setCornerRadius(new Utils(context).FixDP(25));
-            cancelBtn.setBackground(cancelBtnBg);
-
-            LinearLayout.LayoutParams cParams = new LinearLayout.LayoutParams(
-                    0, new Utils(context).FixDP(38), 1f);
-            cParams.setMargins(new Utils(context).FixDP(6), 0, 0, 0);
-            cancelBtn.setLayoutParams(cParams);
-            cancelBtn.setOnClickListener(v -> {
-                visitLayout.setVisibility(View.GONE);
-            });
-
-            btnRow.addView(visitBtn);
-            btnRow.addView(cancelBtn);
-            visitLayout.addView(btnRow);
-
-            card.addView(visitLayout);
-        }
-
         // === STEP 2: Build the root view and add card exactly ONCE ===
         rootContainer = new LinearLayout(context);
         rootContainer.setOrientation(LinearLayout.VERTICAL);
@@ -465,9 +373,6 @@ public class Login {
                         settingsLayout.setVisibility(View.VISIBLE);
                         inputLicense.setVisibility(View.GONE);
                         loginButton.setVisibility(View.GONE);
-                        if (visitLayout != null) {
-                            visitLayout.setVisibility(View.GONE);
-                        }
 
                         Intent launchIntent = context.getPackageManager().getLaunchIntentForPackage("com.dts.freefiremax");
                         if (launchIntent == null) {
