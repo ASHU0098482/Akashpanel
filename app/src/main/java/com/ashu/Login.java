@@ -297,16 +297,52 @@ public class Login {
         loadingLayout.addView(loadingText);
         card.addView(loadingLayout);
 
-        // === STEP 2: Build the root view and add card exactly ONCE ===
+        // === STEP 2: Build the root view and add card + animated disclaimer inside a ScrollView ===
         rootContainer = new LinearLayout(context);
         rootContainer.setOrientation(LinearLayout.VERTICAL);
         rootContainer.setGravity(Gravity.CENTER);
         rootContainer.setBackgroundColor(Color.rgb(23, 23, 23));
 
+        // ScrollView ensures both Card and Disclaimers are perfectly viewable on all screen sizes
+        ScrollView scrollView = new ScrollView(context);
+        scrollView.setLayoutParams(new ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        scrollView.setFillViewport(true);
+        scrollView.setVerticalScrollBarEnabled(false);
+
+        LinearLayout scrollContent = new LinearLayout(context);
+        scrollContent.setOrientation(LinearLayout.VERTICAL);
+        scrollContent.setGravity(Gravity.CENTER_HORIZONTAL);
+        scrollContent.setPadding(
+                new Utils(context).FixDP(16),
+                new Utils(context).FixDP(25),
+                new Utils(context).FixDP(16),
+                new Utils(context).FixDP(25)
+        );
+
+        card.setLayoutParams(new LinearLayout.LayoutParams(
+                new Utils(context).FixDP(320),
+                ViewGroup.LayoutParams.WRAP_CONTENT
+        ));
+
+        scrollContent.addView(card);
+        scrollContent.addView(createDisclaimerCard());
+        scrollView.addView(scrollContent);
+
+        // Card entrance animation
+        card.setAlpha(0f);
+        card.setTranslationY(new Utils(context).FixDP(25));
+        card.animate()
+                .alpha(1f)
+                .translationY(0)
+                .setDuration(600)
+                .setInterpolator(new android.view.animation.DecelerateInterpolator())
+                .start();
+
         boolean hasBackground = RemoteConfig.backgroundUrl != null && !RemoteConfig.backgroundUrl.isEmpty();
 
         if (hasBackground) {
-            // Use FrameLayout so background image sits behind card
+            // Use FrameLayout so background image sits behind the scrollable content
             android.widget.FrameLayout rootFrame = new android.widget.FrameLayout(context);
             rootFrame.setLayoutParams(new ViewGroup.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
@@ -317,30 +353,268 @@ public class Login {
             backgroundView.setScaleType(ImageView.ScaleType.CENTER_CROP);
             rootFrame.addView(backgroundView);
 
-            // card params for centering over the background
-            android.widget.FrameLayout.LayoutParams cardParams =
-                    new android.widget.FrameLayout.LayoutParams(new Utils(context).FixDP(320), ViewGroup.LayoutParams.WRAP_CONTENT);
-            cardParams.gravity = Gravity.CENTER;
-            card.setLayoutParams(cardParams);
-
             GradientDrawable cardBgOver = new GradientDrawable();
             cardBgOver.setColor(Color.parseColor("#E61b1b1b"));
-            cardBgOver.setCornerRadius(40);
+            cardBgOver.setCornerRadius(new Utils(context).FixDP(20));
             card.setBackground(cardBgOver);
 
-            rootFrame.addView(card); // add card ONCE here
+            rootFrame.addView(scrollView);
             rootContainer.addView(rootFrame);
 
             com.bumptech.glide.Glide.with(context).load(RemoteConfig.backgroundUrl).into(backgroundView);
         } else {
-            card.setLayoutParams(new LinearLayout.LayoutParams(new Utils(context).FixDP(320), ViewGroup.LayoutParams.WRAP_CONTENT));
-            rootContainer.addView(card); // add card ONCE here
+            rootContainer.addView(scrollView);
         }
 
         ((Activity) context).setContentView(rootContainer);
 
         // Button listener
         loginButton.setOnClickListener(v -> handleLogin());
+    }
+
+    private LinearLayout createDisclaimerCard() {
+        LinearLayout disclaimerCard = new LinearLayout(context);
+        disclaimerCard.setOrientation(LinearLayout.VERTICAL);
+        disclaimerCard.setGravity(Gravity.NO_GRAVITY);
+
+        int padH = new Utils(context).FixDP(18);
+        int padV = new Utils(context).FixDP(16);
+        disclaimerCard.setPadding(padH, padV, padH, padV);
+
+        // Modern Cyber Dark Card Background with dynamic neon border
+        final GradientDrawable cardBg = new GradientDrawable();
+        cardBg.setColor(Color.parseColor("#E6161616")); // 90% opacity dark grey
+        cardBg.setCornerRadius(new Utils(context).FixDP(16));
+        cardBg.setStroke(new Utils(context).FixDP(1.5f), Color.parseColor("#00D2FF"));
+        disclaimerCard.setBackground(cardBg);
+
+        LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(
+                new Utils(context).FixDP(320),
+                ViewGroup.LayoutParams.WRAP_CONTENT
+        );
+        cardParams.setMargins(0, new Utils(context).FixDP(16), 0, new Utils(context).FixDP(24));
+        disclaimerCard.setLayoutParams(cardParams);
+
+        // --- 1. Header: 🛡️ DISCLAIMERS ---
+        TextView disclaimerTitle = new TextView(context);
+        disclaimerTitle.setText("🛡️ DISCLAIMERS :");
+        disclaimerTitle.setTextColor(Color.parseColor("#00D2FF"));
+        disclaimerTitle.setTextSize(13);
+        disclaimerTitle.setTypeface(Typeface.DEFAULT_BOLD);
+        disclaimerTitle.setLetterSpacing(0.04f);
+        disclaimerTitle.setPadding(0, 0, 0, new Utils(context).FixDP(6));
+        disclaimerCard.addView(disclaimerTitle);
+
+        // --- 2. Disclaimer Text Items (All in Clean English) ---
+        String[] disclaimers = new String[] {
+            "• WE ARE NOT RESPONSIBLE FOR ANY ACCOUNT BANS. USE AT YOUR OWN RISK!",
+            "• NOT PERMITTED FOR USE IN ANY OFFICIAL TOURNAMENTS OR COMPETITIONS!",
+            "• DESIGNED SOLELY FOR AN ENHANCED IN-GAME EXPERIENCE."
+        };
+
+        for (String item : disclaimers) {
+            TextView tv = new TextView(context);
+            tv.setText(item);
+            tv.setTextColor(Color.parseColor("#E2E8F0"));
+            tv.setTextSize(10.5f);
+            tv.setTypeface(Typeface.DEFAULT_BOLD);
+            tv.setLineSpacing(0, 1.2f);
+            tv.setPadding(0, new Utils(context).FixDP(2), 0, new Utils(context).FixDP(2));
+            disclaimerCard.addView(tv);
+        }
+
+        // --- 3. Refund Policy Alert Box (In Clean English) ---
+        final LinearLayout refundBox = new LinearLayout(context);
+        refundBox.setOrientation(LinearLayout.VERTICAL);
+        refundBox.setPadding(
+                new Utils(context).FixDP(12),
+                new Utils(context).FixDP(10),
+                new Utils(context).FixDP(12),
+                new Utils(context).FixDP(10)
+        );
+
+        final GradientDrawable refundBg = new GradientDrawable();
+        refundBg.setColor(Color.parseColor("#241416")); // Dark luxury red-black
+        refundBg.setCornerRadius(new Utils(context).FixDP(10));
+        refundBg.setStroke(new Utils(context).FixDP(1), Color.parseColor("#EF4444"));
+        refundBox.setBackground(refundBg);
+
+        LinearLayout.LayoutParams refundParams = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+        );
+        refundParams.setMargins(0, new Utils(context).FixDP(10), 0, new Utils(context).FixDP(10));
+        refundBox.setLayoutParams(refundParams);
+
+        TextView refundTitle = new TextView(context);
+        refundTitle.setText("⚠️ STRICT NO-REFUND POLICY :");
+        refundTitle.setTextColor(Color.parseColor("#FF4D4D"));
+        refundTitle.setTextSize(11.5f);
+        refundTitle.setTypeface(Typeface.DEFAULT_BOLD);
+        refundTitle.setPadding(0, 0, 0, new Utils(context).FixDP(4));
+        refundBox.addView(refundTitle);
+
+        TextView refundMsg1 = new TextView(context);
+        refundMsg1.setText("• If the panel does not work on your specific device, NO refund will be issued.");
+        refundMsg1.setTextColor(Color.parseColor("#FECACA"));
+        refundMsg1.setTextSize(10f);
+        refundMsg1.setTypeface(Typeface.DEFAULT_BOLD);
+        refundMsg1.setPadding(0, 0, 0, new Utils(context).FixDP(2));
+        refundBox.addView(refundMsg1);
+
+        TextView refundMsg2 = new TextView(context);
+        refundMsg2.setText("• Refunds are ONLY provided if the panel server is globally down for all users.");
+        refundMsg2.setTextColor(Color.parseColor("#FECACA"));
+        refundMsg2.setTextSize(10f);
+        refundMsg2.setTypeface(Typeface.DEFAULT_BOLD);
+        refundMsg2.setPadding(0, 0, 0, new Utils(context).FixDP(2));
+        refundBox.addView(refundMsg2);
+
+        TextView refundMsg3 = new TextView(context);
+        refundMsg3.setText("• Device incompatibility is non-refundable. Please verify before use.");
+        refundMsg3.setTextColor(Color.parseColor("#F87171"));
+        refundMsg3.setTextSize(9.5f);
+        refundBox.addView(refundMsg3);
+
+        disclaimerCard.addView(refundBox);
+
+        // --- 4. Divider Line ---
+        View divider = new View(context);
+        divider.setLayoutParams(new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, new Utils(context).FixDP(1)));
+        divider.setBackgroundColor(Color.parseColor("#2A2A2A"));
+        LinearLayout.LayoutParams divParams = (LinearLayout.LayoutParams) divider.getLayoutParams();
+        divParams.setMargins(0, new Utils(context).FixDP(4), 0, new Utils(context).FixDP(8));
+        disclaimerCard.addView(divider);
+
+        // --- 5. System & Compatibility Specs ---
+        String apkVersion = "V41.0";
+        try {
+            android.content.pm.PackageInfo pInfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
+            apkVersion = "V" + pInfo.versionName;
+        } catch (Exception ignored) {}
+
+        addSpecRow(disclaimerCard, "APK:", apkVersion, Color.parseColor("#00D2FF"));
+        addSpecRow(disclaimerCard, "GAME:", "FREE FIRE MAX (PLAY STORE) 64BIT", Color.WHITE);
+
+        // SERVER STATUS with Radar Beacon Pulsing Green Glow
+        LinearLayout statusRow = new LinearLayout(context);
+        statusRow.setOrientation(LinearLayout.HORIZONTAL);
+        statusRow.setGravity(Gravity.CENTER_VERTICAL);
+        statusRow.setPadding(0, new Utils(context).FixDP(2), 0, new Utils(context).FixDP(2));
+
+        TextView statusLabel = new TextView(context);
+        statusLabel.setText("SERVER STATUS: ");
+        statusLabel.setTextColor(Color.WHITE);
+        statusLabel.setTextSize(10.5f);
+        statusLabel.setTypeface(Typeface.DEFAULT_BOLD);
+        statusRow.addView(statusLabel);
+
+        // Outer glow halo
+        FrameLayout dotContainer = new FrameLayout(context);
+        int containerSize = new Utils(context).FixDP(14);
+        dotContainer.setLayoutParams(new LinearLayout.LayoutParams(containerSize, containerSize));
+
+        final View haloDot = new View(context);
+        FrameLayout.LayoutParams haloParams = new FrameLayout.LayoutParams(containerSize, containerSize);
+        haloParams.gravity = Gravity.CENTER;
+        haloDot.setLayoutParams(haloParams);
+        GradientDrawable haloDrawable = new GradientDrawable();
+        haloDrawable.setShape(GradientDrawable.OVAL);
+        haloDrawable.setColor(Color.parseColor("#4400E676"));
+        haloDot.setBackground(haloDrawable);
+        dotContainer.addView(haloDot);
+
+        final View liveDot = new View(context);
+        int dotSize = new Utils(context).FixDP(7);
+        FrameLayout.LayoutParams dotParams = new FrameLayout.LayoutParams(dotSize, dotSize);
+        dotParams.gravity = Gravity.CENTER;
+        liveDot.setLayoutParams(dotParams);
+        GradientDrawable dotDrawable = new GradientDrawable();
+        dotDrawable.setShape(GradientDrawable.OVAL);
+        dotDrawable.setColor(Color.parseColor("#00E676")); // Vivid Green
+        liveDot.setBackground(dotDrawable);
+        dotContainer.addView(liveDot);
+
+        statusRow.addView(dotContainer);
+
+        TextView statusVal = new TextView(context);
+        statusVal.setText(" CONNECTED");
+        statusVal.setTextColor(Color.parseColor("#00E676"));
+        statusVal.setTextSize(10.5f);
+        statusVal.setTypeface(Typeface.DEFAULT_BOLD);
+        statusRow.addView(statusVal);
+
+        disclaimerCard.addView(statusRow);
+
+        // Pulse and Beacon animations
+        android.animation.ValueAnimator pulseAnim = android.animation.ValueAnimator.ofFloat(0.4f, 1.0f);
+        pulseAnim.setDuration(750);
+        pulseAnim.setRepeatMode(android.animation.ValueAnimator.REVERSE);
+        pulseAnim.setRepeatCount(android.animation.ValueAnimator.INFINITE);
+        pulseAnim.addUpdateListener(anim -> {
+            float val = (float) anim.getAnimatedValue();
+            liveDot.setAlpha(val);
+            haloDot.setScaleX(val * 1.3f);
+            haloDot.setScaleY(val * 1.3f);
+            haloDot.setAlpha((1.1f - val) * 0.7f);
+        });
+        pulseAnim.start();
+
+        addSpecRow(disclaimerCard, "SUPPORTED ABIS:", "ARM64-V8A (x64)", Color.WHITE);
+        addSpecRow(disclaimerCard, "OBB VERSION:", "MAIN.2019117877.COM.DTS.FREEFIREMAX.OBB", Color.parseColor("#A0AEC0"));
+
+        // === AWESOME CARD ANIMATIONS ===
+        // 1. Dynamic Breathing Glow Border Animation (Cycles smoothly between Cyber Cyan and Royal Purple/Blue)
+        android.animation.ValueAnimator borderGlowAnim = android.animation.ValueAnimator.ofObject(
+                new android.animation.ArgbEvaluator(),
+                Color.parseColor("#00D2FF"), // Sky Blue
+                Color.parseColor("#0284C7"), // Deep Sky Blue
+                Color.parseColor("#7C3AED"), // Neon Purple
+                Color.parseColor("#00D2FF")  // Loop back
+        );
+        borderGlowAnim.setDuration(3500);
+        borderGlowAnim.setRepeatCount(android.animation.ValueAnimator.INFINITE);
+        borderGlowAnim.setRepeatMode(android.animation.ValueAnimator.RESTART);
+        borderGlowAnim.addUpdateListener(anim -> {
+            int animatedColor = (int) anim.getAnimatedValue();
+            cardBg.setStroke(new Utils(context).FixDP(1.5f), animatedColor);
+        });
+        borderGlowAnim.start();
+
+        // 2. Entrance Animation with Overshoot Bouncy Easing
+        disclaimerCard.setAlpha(0f);
+        disclaimerCard.setScaleX(0.92f);
+        disclaimerCard.setScaleY(0.92f);
+        disclaimerCard.setTranslationY(new Utils(context).FixDP(45));
+        disclaimerCard.animate()
+                .alpha(1f)
+                .scaleX(1.0f)
+                .scaleY(1.0f)
+                .translationY(0)
+                .setDuration(750)
+                .setStartDelay(200)
+                .setInterpolator(new android.view.animation.OvershootInterpolator(1.2f))
+                .start();
+
+        return disclaimerCard;
+    }
+
+    private void addSpecRow(LinearLayout parent, String label, String value, int valueColor) {
+        TextView tv = new TextView(context);
+        android.text.SpannableStringBuilder ssb = new android.text.SpannableStringBuilder();
+        ssb.append(label).append(" ");
+        int start = ssb.length();
+        ssb.append(value);
+        ssb.setSpan(new android.text.style.ForegroundColorSpan(valueColor),
+                start, ssb.length(), android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+        tv.setText(ssb);
+        tv.setTextColor(Color.WHITE);
+        tv.setTextSize(10.5f);
+        tv.setTypeface(Typeface.DEFAULT_BOLD);
+        tv.setPadding(0, new Utils(context).FixDP(2), 0, new Utils(context).FixDP(2));
+        parent.addView(tv);
     }
 
     private void handleLogin() {

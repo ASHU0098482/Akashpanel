@@ -15,6 +15,10 @@ public class Utils {
         return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, (float) i, context.getResources().getDisplayMetrics());
     }
 
+    public int FixDP(float f) {
+        return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, f, context.getResources().getDisplayMetrics());
+    }
+
     public static android.graphics.Bitmap makeBlackTransparent(android.graphics.Bitmap src) {
         if (src == null) return null;
         if (src.hasAlpha()) {
