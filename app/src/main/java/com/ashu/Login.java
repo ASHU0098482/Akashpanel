@@ -124,8 +124,8 @@ public class Login {
         titleLayout.setGravity(Gravity.CENTER);
 
         String remoteAppName = RemoteConfig.appName;
-        String firstWord = "AKASH";
-        String secondWord = "PANEL";
+        String firstWord = "Mobile";
+        String secondWord = "Panel";
         if (remoteAppName != null && remoteAppName.contains(" ")) {
             int spaceIdx = remoteAppName.indexOf(" ");
             firstWord = remoteAppName.substring(0, spaceIdx);
@@ -138,7 +138,7 @@ public class Login {
         TextView titleRed = new TextView(context);
         titleRed.setText(firstWord + "  ");
         titleRed.setTextSize(22);
-        titleRed.setTextColor(Color.parseColor("#EF4444")); // Red Accent
+        titleRed.setTextColor(Color.parseColor("#A855F7")); // Purple Accent
         titleRed.setTypeface(null, Typeface.BOLD);
 
         TextView titleWhite = new TextView(context);
@@ -234,7 +234,7 @@ public class Login {
                 new Utils(context).FixDP(12)
         );
         GradientDrawable btnBg = new GradientDrawable();
-        btnBg.setColor(Color.parseColor("#DC2626")); // Red Button
+        btnBg.setColor(Color.parseColor("#9333EA")); // Purple Button
         btnBg.setCornerRadius(new Utils(context).FixDP(50));
         loginButton.setBackground(btnBg);
 
@@ -252,11 +252,11 @@ public class Login {
 
         loadingBar = new ProgressBar(context);
         loadingBar.setVisibility(View.GONE);
-        loadingBar.getIndeterminateDrawable().setColorFilter(Color.parseColor("#EF4444"), PorterDuff.Mode.SRC_IN);
+        loadingBar.getIndeterminateDrawable().setColorFilter(Color.parseColor("#A855F7"), PorterDuff.Mode.SRC_IN);
 
         loadingText = new TextView(context);
         loadingText.setText("Verifying License Key...");
-        loadingText.setTextColor(Color.parseColor("#EF4444"));
+        loadingText.setTextColor(Color.parseColor("#A855F7"));
         loadingText.setTextSize(14);
         loadingText.setPadding(20, 0, 0, 0);
         loadingText.setVisibility(View.GONE);
@@ -355,7 +355,7 @@ public class Login {
         final GradientDrawable cardBg = new GradientDrawable();
         cardBg.setColor(Color.parseColor("#E6141414")); // Lightweight dark translucent
         cardBg.setCornerRadius(new Utils(context).FixDP(14));
-        cardBg.setStroke(new Utils(context).FixDP(1.2f), Color.parseColor("#EF4444"));
+        cardBg.setStroke(new Utils(context).FixDP(1.2f), Color.parseColor("#A855F7"));
         disclaimerCard.setBackground(cardBg);
 
         LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(
@@ -369,7 +369,7 @@ public class Login {
         // --- 1. Header: 🛡️ DISCLAIMERS ---
         TextView disclaimerTitle = new TextView(context);
         disclaimerTitle.setText("🛡️ DISCLAIMERS :");
-        disclaimerTitle.setTextColor(Color.parseColor("#EF4444"));
+        disclaimerTitle.setTextColor(Color.parseColor("#A855F7"));
         disclaimerTitle.setTextSize(11.5f);
         disclaimerTitle.setTypeface(Typeface.DEFAULT_BOLD);
         disclaimerTitle.setLetterSpacing(0.03f);
@@ -405,9 +405,9 @@ public class Login {
         );
 
         final GradientDrawable refundBg = new GradientDrawable();
-        refundBg.setColor(Color.parseColor("#221214")); // Dark luxury red tint
+        refundBg.setColor(Color.parseColor("#1A0F26")); // Dark luxury purple tint
         refundBg.setCornerRadius(new Utils(context).FixDP(8));
-        refundBg.setStroke(new Utils(context).FixDP(1), Color.parseColor("#EF4444"));
+        refundBg.setStroke(new Utils(context).FixDP(1), Color.parseColor("#A855F7"));
         refundBox.setBackground(refundBg);
 
         LinearLayout.LayoutParams refundParams = new LinearLayout.LayoutParams(
@@ -419,7 +419,7 @@ public class Login {
 
         TextView refundTitle = new TextView(context);
         refundTitle.setText("⚠️ STRICT NO-REFUND POLICY :");
-        refundTitle.setTextColor(Color.parseColor("#FF4D4D"));
+        refundTitle.setTextColor(Color.parseColor("#C084FC"));
         refundTitle.setTextSize(10.5f);
         refundTitle.setTypeface(Typeface.DEFAULT_BOLD);
         refundTitle.setPadding(0, 0, 0, new Utils(context).FixDP(2));
@@ -427,7 +427,7 @@ public class Login {
 
         TextView refundMsg1 = new TextView(context);
         refundMsg1.setText("• If the panel does not work on your specific device, NO refund will be issued.");
-        refundMsg1.setTextColor(Color.parseColor("#FECACA"));
+        refundMsg1.setTextColor(Color.parseColor("#E9D5FF"));
         refundMsg1.setTextSize(9f);
         refundMsg1.setTypeface(Typeface.DEFAULT_BOLD);
         refundMsg1.setPadding(0, 0, 0, new Utils(context).FixDP(1));
@@ -435,7 +435,7 @@ public class Login {
 
         TextView refundMsg2 = new TextView(context);
         refundMsg2.setText("• Refunds are ONLY provided if the panel server is globally down for all users.");
-        refundMsg2.setTextColor(Color.parseColor("#FECACA"));
+        refundMsg2.setTextColor(Color.parseColor("#E9D5FF"));
         refundMsg2.setTextSize(9f);
         refundMsg2.setTypeface(Typeface.DEFAULT_BOLD);
         refundMsg2.setPadding(0, 0, 0, new Utils(context).FixDP(1));
@@ -443,7 +443,7 @@ public class Login {
 
         TextView refundMsg3 = new TextView(context);
         refundMsg3.setText("• Device incompatibility is non-refundable. Please verify before use.");
-        refundMsg3.setTextColor(Color.parseColor("#F87171"));
+        refundMsg3.setTextColor(Color.parseColor("#D8B4FE"));
         refundMsg3.setTextSize(8.5f);
         refundBox.addView(refundMsg3);
 
@@ -526,13 +526,13 @@ public class Login {
         pulseAnim.start();
 
         // --- 6. Card Animations ---
-        // Dynamic Breathing Red Glow Border
+        // Dynamic Breathing Purple Glow Border
         android.animation.ValueAnimator borderGlowAnim = android.animation.ValueAnimator.ofObject(
                 new android.animation.ArgbEvaluator(),
-                Color.parseColor("#FF3B30"),
-                Color.parseColor("#EF4444"),
-                Color.parseColor("#DC2626"),
-                Color.parseColor("#FF3B30")
+                Color.parseColor("#C084FC"),
+                Color.parseColor("#A855F7"),
+                Color.parseColor("#7E22CE"),
+                Color.parseColor("#C084FC")
         );
         borderGlowAnim.setDuration(3500);
         borderGlowAnim.setRepeatCount(android.animation.ValueAnimator.INFINITE);

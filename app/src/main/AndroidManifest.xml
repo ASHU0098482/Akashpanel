@@ -19,7 +19,7 @@
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/ic_launcher_round"
-        android:label="AKASH PANEL"
+        android:label="Mobile Panel"
         android:supportsRtl="true">
         <activity android:name="com.ashu.MainActivity">
             <intent-filter>

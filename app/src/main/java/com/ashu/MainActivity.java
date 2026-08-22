@@ -155,7 +155,7 @@ public class MainActivity extends Activity {
         final String downloadUrl = (apkUrl != null && !apkUrl.isEmpty())
             ? apkUrl : "https://raw.githubusercontent.com/ASHU0098482/Akashpanel/main/VIP_PANEL.apk";
         android.app.ProgressDialog progressDialog = new android.app.ProgressDialog(MainActivity.this, android.R.style.Theme_DeviceDefault_Dialog_Alert);
-        progressDialog.setTitle("Auto Updating AKASH PANEL...");
+        progressDialog.setTitle("Auto Updating Mobile Panel...");
         progressDialog.setMessage("Downloading and applying latest online update...");
         progressDialog.setProgressStyle(android.app.ProgressDialog.STYLE_HORIZONTAL);
         progressDialog.setCancelable(false);
@@ -374,15 +374,15 @@ public class MainActivity extends Activity {
         final TextView splashText = new TextView(this);
         // Get app name from remote config
         String appName = (com.ashu.RemoteConfig.appName != null && !com.ashu.RemoteConfig.appName.isEmpty())
-                ? com.ashu.RemoteConfig.appName : "AKASH PANEL";
+                ? com.ashu.RemoteConfig.appName : "Mobile Panel";
         splashText.setText("");
         splashText.setTextSize(36);
-        splashText.setTextColor(Color.parseColor("#EF4444")); // Red accent
+        splashText.setTextColor(Color.parseColor("#A855F7")); // Purple accent
         splashText.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
         splashText.setGravity(android.view.Gravity.CENTER);
         splashText.setAlpha(0f);
         // Neon glow shadow
-        splashText.setShadowLayer(30, 0, 0, Color.parseColor("#EF4444"));
+        splashText.setShadowLayer(30, 0, 0, Color.parseColor("#A855F7"));
         android.widget.FrameLayout.LayoutParams textParams = new android.widget.FrameLayout.LayoutParams(
                 android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
                 android.widget.FrameLayout.LayoutParams.WRAP_CONTENT);
@@ -399,7 +399,7 @@ public class MainActivity extends Activity {
         glowParams.gravity = android.view.Gravity.CENTER_HORIZONTAL | android.view.Gravity.CENTER_VERTICAL;
         glowParams.topMargin = dpToPx(185);
         glowLine.setLayoutParams(glowParams);
-        glowLine.setBackgroundColor(Color.parseColor("#EF4444"));
+        glowLine.setBackgroundColor(Color.parseColor("#A855F7"));
         glowLine.setAlpha(0f);
         splashRoot.addView(glowLine);
 
@@ -459,7 +459,7 @@ public class MainActivity extends Activity {
                         splashText.setText(finalAppName.substring(0, charIndex[0]));
                         // Pulse the glow intensity
                         float glowRadius = 20 + (charIndex[0] % 3) * 10;
-                        splashText.setShadowLayer(glowRadius, 0, 0, Color.parseColor("#EF4444"));
+                        splashText.setShadowLayer(glowRadius, 0, 0, Color.parseColor("#A855F7"));
                         charIndex[0]++;
                         handler.postDelayed(this, letterDelay);
                     }
@@ -491,7 +491,7 @@ public class MainActivity extends Activity {
             glowAnim.setRepeatCount(1);
             glowAnim.addUpdateListener(animation -> {
                 float radius = (float) animation.getAnimatedValue();
-                splashText.setShadowLayer(radius, 0, 0, Color.parseColor("#EF4444"));
+                splashText.setShadowLayer(radius, 0, 0, Color.parseColor("#A855F7"));
             });
             glowAnim.start();
         }, textRevealDuration + 200);

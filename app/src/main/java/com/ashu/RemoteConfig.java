@@ -13,8 +13,8 @@ public class RemoteConfig {
     public static final String CONFIG_URL = "https://raw.githubusercontent.com/ASHU0098482/Akashpanel/main/config.json";
 
     public static boolean isOnline = true;
-    public static String maintenanceMessage = "AKASH PANEL is currently active.";
-    public static String appName = "AKASH PANEL";
+    public static String maintenanceMessage = "Mobile Panel is currently active.";
+    public static String appName = "Mobile Panel";
 
     public static boolean showNotice = false;
     public static String noticeTitle = "";
@@ -26,7 +26,7 @@ public class RemoteConfig {
     public static String keyauthVersion = "1.0";
     public static String keyauthUrl = "https://keyauth.win/api/1.3/";
 
-    public static int remoteVersionCode = 2;
+    public static int remoteVersionCode = 3;
     public static String updateUrl = "";
 
     public static boolean showWebsiteBanner = false;
@@ -80,7 +80,7 @@ public class RemoteConfig {
                         
                         isOnline = status.equalsIgnoreCase("online");
                         maintenanceMessage = json.optString("maintenance_message", "APK is currently under maintenance.");
-                        appName = json.optString("app_name", "AKASH PANEL");
+                        appName = json.optString("app_name", "Mobile Panel");
                         
                         showNotice = json.optBoolean("show_notice", false);
                         noticeTitle = json.optString("notice_title", "");
