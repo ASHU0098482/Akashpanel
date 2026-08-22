@@ -48,9 +48,6 @@ public class MainActivity extends Activity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        // Fully terminate process so floating window and drawing loops stop running in background
-        android.os.Process.killProcess(android.os.Process.myPid());
-        System.exit(0);
     }
 
     private void startAppFlow() {
@@ -151,22 +148,45 @@ public class MainActivity extends Activity {
             .show();
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (pendingInstallApkFile != null && pendingInstallApkFile.exists()) {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O || getPackageManager().canRequestPackageInstalls()) {
+                java.io.File toInstall = pendingInstallApkFile;
+                pendingInstallApkFile = null;
+                launchPackageInstaller(toInstall);
+            }
+        }
+    }
+
     public void downloadAndInstallApk(final String apkUrl) {
         final String downloadUrl = (apkUrl != null && !apkUrl.isEmpty())
             ? apkUrl : "https://raw.githubusercontent.com/ASHU0098482/Akashpanel/main/MOBILE_PANEL.apk";
-        android.app.ProgressDialog progressDialog = new android.app.ProgressDialog(MainActivity.this, android.R.style.Theme_DeviceDefault_Dialog_Alert);
+        
+        final android.app.ProgressDialog progressDialog = new android.app.ProgressDialog(MainActivity.this, android.R.style.Theme_DeviceDefault_Dialog_Alert);
         progressDialog.setTitle("Auto Updating Mobile Panel...");
-        progressDialog.setMessage("Downloading and applying latest online update...");
+        progressDialog.setMessage("Downloading latest update, please wait...");
         progressDialog.setProgressStyle(android.app.ProgressDialog.STYLE_HORIZONTAL);
         progressDialog.setCancelable(false);
+        progressDialog.setCanceledOnTouchOutside(false);
         progressDialog.setIndeterminate(false);
-        progressDialog.show();
+        progressDialog.setMax(100);
+        progressDialog.setProgress(0);
+        
+        if (!isFinishing()) {
+            try {
+                progressDialog.show();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
 
         new Thread(() -> {
             try {
                 java.io.File updatesDir = new java.io.File(getExternalFilesDir(null), "updates");
                 if (!updatesDir.exists()) updatesDir.mkdirs();
-                java.io.File apkFile = new java.io.File(updatesDir, "MOBILE_PANEL_update.apk");
+                final java.io.File apkFile = new java.io.File(updatesDir, "MOBILE_PANEL_update.apk");
                 if (apkFile.exists()) apkFile.delete();
 
                 String currentUrl = downloadUrl;
@@ -183,8 +203,8 @@ public class MainActivity extends Activity {
                     conn = (java.net.HttpURLConnection) url.openConnection();
                     conn.setInstanceFollowRedirects(true);
                     conn.setRequestMethod("GET");
-                    conn.setConnectTimeout(15000);
-                    conn.setReadTimeout(15000);
+                    conn.setConnectTimeout(20000);
+                    conn.setReadTimeout(20000);
                     conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; Android 10; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36");
                     conn.setRequestProperty("Accept", "*/*");
 
@@ -204,37 +224,70 @@ public class MainActivity extends Activity {
                     break;
                 }
 
+                if (conn == null || conn.getResponseCode() != java.net.HttpURLConnection.HTTP_OK) {
+                    int respCode = (conn != null) ? conn.getResponseCode() : -1;
+                    throw new Exception("Server response error: HTTP " + respCode);
+                }
+
                 int fileLength = conn.getContentLength();
-                java.io.InputStream input = conn.getInputStream();
+                java.io.InputStream input = new java.io.BufferedInputStream(conn.getInputStream(), 8192);
                 java.io.FileOutputStream output = new java.io.FileOutputStream(apkFile);
 
-                byte[] buffer = new byte[4096];
+                byte[] buffer = new byte[8192];
                 long total = 0;
                 int count;
+                long lastProgressTime = 0;
                 while ((count = input.read(buffer)) != -1) {
                     total += count;
-                    if (fileLength > 0) {
-                        final int progress = (int) (total * 100 / fileLength);
-                        runOnUiThread(() -> progressDialog.setProgress(progress));
-                    }
                     output.write(buffer, 0, count);
+                    
+                    if (fileLength > 0) {
+                        long now = System.currentTimeMillis();
+                        if (now - lastProgressTime > 80) {
+                            lastProgressTime = now;
+                            final int progress = (int) (total * 100 / fileLength);
+                            runOnUiThread(() -> {
+                                if (!isFinishing()) {
+                                    try {
+                                        progressDialog.setProgress(progress);
+                                    } catch (Exception ignored) {}
+                                }
+                            });
+                        }
+                    }
                 }
                 output.flush();
                 output.close();
                 input.close();
                 conn.disconnect();
 
+                if (apkFile.length() < 102400) { // Less than 100KB is definitely corrupted
+                    throw new Exception("Downloaded file is incomplete (" + apkFile.length() + " bytes)");
+                }
+
+                // Make file world-readable
+                apkFile.setReadable(true, false);
+
                 runOnUiThread(() -> {
-                    progressDialog.dismiss();
+                    if (!isFinishing()) {
+                        try {
+                            progressDialog.dismiss();
+                        } catch (Exception ignored) {}
+                    }
                     installApk(apkFile);
                 });
 
             } catch (Exception e) {
                 e.printStackTrace();
+                final String errorMsg = e.getMessage();
                 runOnUiThread(() -> {
-                    progressDialog.dismiss();
-                    Toast.makeText(MainActivity.this, "Update failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                    showUpdateDialog(apkUrl); // Show dialog again if download fails
+                    if (!isFinishing()) {
+                        try {
+                            progressDialog.dismiss();
+                        } catch (Exception ignored) {}
+                    }
+                    Toast.makeText(MainActivity.this, "Update download failed: " + errorMsg, Toast.LENGTH_LONG).show();
+                    showUpdateDialog(apkUrl);
                 });
             }
         }).start();
@@ -246,49 +299,25 @@ public class MainActivity extends Activity {
             return;
         }
 
-        // 1. Try silent root install if root is available
-        try {
-            Process process = Runtime.getRuntime().exec("su");
-            java.io.OutputStream os = process.getOutputStream();
-            os.write(("cp " + apkFile.getAbsolutePath() + " /data/local/tmp/update.apk\n").getBytes());
-            os.write(("chmod 777 /data/local/tmp/update.apk\n").getBytes());
-            os.write(("chcon u:object_r:shell_data_file:s0 /data/local/tmp/update.apk 2>/dev/null\n").getBytes());
-            os.write(("pm install -r -d -g /data/local/tmp/update.apk || pm install -r -d -g --user 0 /data/local/tmp/update.apk\n").getBytes());
-            os.write(("rm /data/local/tmp/update.apk\n").getBytes());
-            os.write("exit\n".getBytes());
-            os.flush();
-            int result = process.waitFor();
-            if (result == 0) {
-                // Silent install succeeded!
-                android.os.Process.killProcess(android.os.Process.myPid());
-                System.exit(0);
-                return;
-            }
-        } catch (Exception ignored) {
-        }
-
-        // 2. Non-root install flow
-        pendingInstallApkFile = apkFile;
-
-        // Check Unknown App Install permission on Android 8.0+ for non-root installer
+        // Check Unknown App Install permission on Android 8.0+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             if (!getPackageManager().canRequestPackageInstalls()) {
-                Toast.makeText(this, "Please allow 'Install Unknown Apps' permission to complete update", Toast.LENGTH_LONG).show();
+                pendingInstallApkFile = apkFile;
+                Toast.makeText(this, "Please allow 'Install Unknown Apps' to finish update", Toast.LENGTH_LONG).show();
                 try {
                     Intent permIntent = new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:" + getPackageName()));
                     startActivityForResult(permIntent, INSTALL_UNKNOWN_APPS_REQUEST_CODE);
-                    return; // Wait for user to grant permission and return
+                    return;
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
         }
 
-        // Launch standard package installer
         launchPackageInstaller(apkFile);
     }
 
-    private void launchPackageInstaller(java.io.File apkFile) {
+    private void launchPackageInstaller(final java.io.File apkFile) {
         if (apkFile == null || !apkFile.exists()) return;
         try {
             Intent intent = new Intent(Intent.ACTION_VIEW);
@@ -303,7 +332,7 @@ public class MainActivity extends Activity {
             intent.setDataAndType(apkUri, "application/vnd.android.package-archive");
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
 
-            // Grant URI read permissions explicitly to package installer handlers
+            // Grant URI read permissions explicitly to all handlers
             java.util.List<android.content.pm.ResolveInfo> resolveInfoList = getPackageManager()
                     .queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
             if (resolveInfoList != null) {
@@ -315,7 +344,8 @@ public class MainActivity extends Activity {
 
             startActivity(intent);
         } catch (Exception e) {
-            Toast.makeText(this, "Install failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            e.printStackTrace();
+            Toast.makeText(this, "Installer error: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
 
