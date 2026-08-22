@@ -124,7 +124,7 @@ public class Login {
         titleLayout.setGravity(Gravity.CENTER);
 
         String remoteAppName = RemoteConfig.appName;
-        String firstWord = "JACK";
+        String firstWord = "AKASH";
         String secondWord = "PANEL";
         if (remoteAppName != null && remoteAppName.contains(" ")) {
             int spaceIdx = remoteAppName.indexOf(" ");
@@ -138,7 +138,7 @@ public class Login {
         TextView titleRed = new TextView(context);
         titleRed.setText(firstWord + "  ");
         titleRed.setTextSize(22);
-        titleRed.setTextColor(Color.parseColor("#FFB800")); // Golden Accent
+        titleRed.setTextColor(Color.parseColor("#EF4444")); // Red Accent
         titleRed.setTypeface(null, Typeface.BOLD);
 
         TextView titleWhite = new TextView(context);
@@ -234,7 +234,7 @@ public class Login {
                 new Utils(context).FixDP(12)
         );
         GradientDrawable btnBg = new GradientDrawable();
-        btnBg.setColor(Color.parseColor("#F59E0B")); // Golden Button
+        btnBg.setColor(Color.parseColor("#DC2626")); // Red Button
         btnBg.setCornerRadius(new Utils(context).FixDP(50));
         loginButton.setBackground(btnBg);
 
@@ -252,11 +252,11 @@ public class Login {
 
         loadingBar = new ProgressBar(context);
         loadingBar.setVisibility(View.GONE);
-        loadingBar.getIndeterminateDrawable().setColorFilter(Color.parseColor("#FFB800"), PorterDuff.Mode.SRC_IN);
+        loadingBar.getIndeterminateDrawable().setColorFilter(Color.parseColor("#EF4444"), PorterDuff.Mode.SRC_IN);
 
         loadingText = new TextView(context);
         loadingText.setText("Verifying License Key...");
-        loadingText.setTextColor(Color.parseColor("#FFB800"));
+        loadingText.setTextColor(Color.parseColor("#EF4444"));
         loadingText.setTextSize(14);
         loadingText.setPadding(20, 0, 0, 0);
         loadingText.setVisibility(View.GONE);
@@ -355,7 +355,7 @@ public class Login {
         final GradientDrawable cardBg = new GradientDrawable();
         cardBg.setColor(Color.parseColor("#E6141414")); // Lightweight dark translucent
         cardBg.setCornerRadius(new Utils(context).FixDP(14));
-        cardBg.setStroke(new Utils(context).FixDP(1.2f), Color.parseColor("#FFB800"));
+        cardBg.setStroke(new Utils(context).FixDP(1.2f), Color.parseColor("#EF4444"));
         disclaimerCard.setBackground(cardBg);
 
         LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(
@@ -369,7 +369,7 @@ public class Login {
         // --- 1. Header: 🛡️ DISCLAIMERS ---
         TextView disclaimerTitle = new TextView(context);
         disclaimerTitle.setText("🛡️ DISCLAIMERS :");
-        disclaimerTitle.setTextColor(Color.parseColor("#FFB800"));
+        disclaimerTitle.setTextColor(Color.parseColor("#EF4444"));
         disclaimerTitle.setTextSize(11.5f);
         disclaimerTitle.setTypeface(Typeface.DEFAULT_BOLD);
         disclaimerTitle.setLetterSpacing(0.03f);
@@ -526,13 +526,13 @@ public class Login {
         pulseAnim.start();
 
         // --- 6. Card Animations ---
-        // Dynamic Breathing Golden Glow Border
+        // Dynamic Breathing Red Glow Border
         android.animation.ValueAnimator borderGlowAnim = android.animation.ValueAnimator.ofObject(
                 new android.animation.ArgbEvaluator(),
-                Color.parseColor("#FFD700"),
-                Color.parseColor("#F59E0B"),
-                Color.parseColor("#D97706"),
-                Color.parseColor("#FFD700")
+                Color.parseColor("#FF3B30"),
+                Color.parseColor("#EF4444"),
+                Color.parseColor("#DC2626"),
+                Color.parseColor("#FF3B30")
         );
         borderGlowAnim.setDuration(3500);
         borderGlowAnim.setRepeatCount(android.animation.ValueAnimator.INFINITE);

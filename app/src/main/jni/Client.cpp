@@ -223,7 +223,7 @@ Java_com_ashu_Menu_ChangesID(JNIEnv *env, jclass clazz, jint id, jint value) {
                 }
                 showNotification("Activate All", pAimbotPlayer.enableAimbot);
             } else {
-                ShowErrorToast(env, "JACK PANEL ALWAYS ON TOP ✅.   ");
+                ShowErrorToast(env, "AKASH PANEL ALWAYS ON TOP ✅.   ");
                 LOGD("❌ BLOCKED: Owner ID mismatch! Found: %s", LoggedInOwnerID.c_str());
             }
             break;
@@ -536,14 +536,14 @@ Java_com_ashu_Menu_OnDrawLoad(JNIEnv *env, jclass clazz, jobject draw_view, jobj
                 draw.DrawLogo(draw.getWidth() / 2, draw.getHeight() / 2, 180.0f, 180.0f, 255.0f);
             }
             else if (elapsed < 2400) {
-                // Phase 2: Full black screen, logo disappears, bold golden text "JACK PANEL" at center
+                // Phase 2: Full black screen, logo disappears, bold red text "AKASH PANEL" at center
                 draw.DrawBlackScreen(255);
                 // Center bold text (size 70.0f)
-                draw.DrawText(Color(0, 0, 0, 200), "JACK PANEL", Vector2(draw.getWidth() / 2 + 2, draw.getHeight() / 2 + 2), 70.0f);
-                draw.DrawText(Color(255, 184, 0, 255), "JACK PANEL", Vector2(draw.getWidth() / 2, draw.getHeight() / 2), 70.0f);
+                draw.DrawText(Color(0, 0, 0, 200), "AKASH PANEL", Vector2(draw.getWidth() / 2 + 2, draw.getHeight() / 2 + 2), 70.0f);
+                draw.DrawText(Color(255, 59, 48, 255), "AKASH PANEL", Vector2(draw.getWidth() / 2, draw.getHeight() / 2), 70.0f);
             }
             else if (elapsed < 3800) {
-                // Phase 3: Black screen fades to transparent, and "JACK PANEL" text slides from center to final top position
+                // Phase 3: Black screen fades to transparent, and "AKASH PANEL" text slides from center to final top position
                 float progress = (elapsed - 2400) / 1400.0f; // 0.0 to 1.0
                 if (progress > 1.0f) progress = 1.0f;
 
@@ -558,11 +558,11 @@ Java_com_ashu_Menu_OnDrawLoad(JNIEnv *env, jclass clazz, jobject draw_view, jobj
                 // Smoothly interpolate size from 70 to 45
                 float currentSize = 70.0f + (45.0f - 70.0f) * progress;
 
-                // Color interpolates to Golden
-                Color currentColor = Color(255, 184, 0, 255);
+                // Color is Vibrant Red
+                Color currentColor = Color(255, 59, 48, 255);
 
-                draw.DrawText(Color(0, 0, 0, 200), "JACK PANEL", Vector2(draw.getWidth() / 2 + 2, currentY + 2), currentSize);
-                draw.DrawText(currentColor, "JACK PANEL", Vector2(draw.getWidth() / 2, currentY), currentSize);
+                draw.DrawText(Color(0, 0, 0, 200), "AKASH PANEL", Vector2(draw.getWidth() / 2 + 2, currentY + 2), currentSize);
+                draw.DrawText(currentColor, "AKASH PANEL", Vector2(draw.getWidth() / 2, currentY), currentSize);
             }
             else {
                 // Animation finished!
@@ -570,11 +570,11 @@ Java_com_ashu_Menu_OnDrawLoad(JNIEnv *env, jclass clazz, jobject draw_view, jobj
             }
         }
 
-        // Show "JACK PANEL" overlay when Activate All is ON and animation is not running
+        // Show "AKASH PANEL" overlay when Activate All is ON and animation is not running
         if (pAimbotPlayer.enableAimbot && !showAnimation) {
             Vector2 welcomePos(draw.getWidth() / 2, 120);
-            draw.DrawText(Color(0, 0, 0, 200), "JACK PANEL", Vector2(welcomePos.X + 2, welcomePos.Y + 2), 45.0f);
-            draw.DrawText(Color(255, 184, 0, 255), "JACK PANEL", welcomePos, 45.0f);
+            draw.DrawText(Color(0, 0, 0, 200), "AKASH PANEL", Vector2(welcomePos.X + 2, welcomePos.Y + 2), 45.0f);
+            draw.DrawText(Color(255, 59, 48, 255), "AKASH PANEL", welcomePos, 45.0f);
         }
 
         if (pAimbotPlayer.enableAimbot) {
