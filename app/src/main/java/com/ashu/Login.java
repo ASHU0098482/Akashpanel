@@ -198,7 +198,7 @@ public class Login {
 
         // --- 3. VIP BADGE PILL ---
         TextView vipBadge = new TextView(context);
-        vipBadge.setText("⚡ CYBER INJECTOR • VIP EDITION");
+        vipBadge.setText("⚡ CYBER INJECTOR • MOBILE EDITION");
         vipBadge.setTextSize(9.5f);
         vipBadge.setTextColor(Color.parseColor("#E9D5FF"));
         vipBadge.setTypeface(Typeface.DEFAULT_BOLD);
@@ -607,7 +607,7 @@ public class Login {
         if (rawHwid == null || rawHwid.isEmpty()) {
             rawHwid = "defaultandroidid12345";
         }
-        String combined = rawHwid + "-vip-panel-hwid-secure";
+        String combined = rawHwid + "-mobile-panel-hwid-secure";
         return combined.substring(0, Math.max(20, combined.length()));
     }
 

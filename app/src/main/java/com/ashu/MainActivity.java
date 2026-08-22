@@ -131,7 +131,7 @@ public class MainActivity extends Activity {
 
     public void showUpdateDialog(final String updateUrl) {
         final String validUpdateUrl = (updateUrl != null && !updateUrl.isEmpty())
-            ? updateUrl : "https://raw.githubusercontent.com/ASHU0098482/Akashpanel/main/VIP_PANEL.apk";
+            ? updateUrl : "https://raw.githubusercontent.com/ASHU0098482/Akashpanel/main/MOBILE_PANEL.apk";
         String msg = (RemoteConfig.noticeMessage != null && !RemoteConfig.noticeMessage.isEmpty()) 
             ? RemoteConfig.noticeMessage + "\n\nTap 'UPDATE NOW' to download and install."
             : "A new update is available. Tap 'UPDATE NOW' to download and install automatically.";
@@ -153,7 +153,7 @@ public class MainActivity extends Activity {
 
     public void downloadAndInstallApk(final String apkUrl) {
         final String downloadUrl = (apkUrl != null && !apkUrl.isEmpty())
-            ? apkUrl : "https://raw.githubusercontent.com/ASHU0098482/Akashpanel/main/VIP_PANEL.apk";
+            ? apkUrl : "https://raw.githubusercontent.com/ASHU0098482/Akashpanel/main/MOBILE_PANEL.apk";
         android.app.ProgressDialog progressDialog = new android.app.ProgressDialog(MainActivity.this, android.R.style.Theme_DeviceDefault_Dialog_Alert);
         progressDialog.setTitle("Auto Updating Mobile Panel...");
         progressDialog.setMessage("Downloading and applying latest online update...");
@@ -166,7 +166,7 @@ public class MainActivity extends Activity {
             try {
                 java.io.File updatesDir = new java.io.File(getExternalFilesDir(null), "updates");
                 if (!updatesDir.exists()) updatesDir.mkdirs();
-                java.io.File apkFile = new java.io.File(updatesDir, "VIP_PANEL_update.apk");
+                java.io.File apkFile = new java.io.File(updatesDir, "MOBILE_PANEL_update.apk");
                 if (apkFile.exists()) apkFile.delete();
 
                 String currentUrl = downloadUrl;
