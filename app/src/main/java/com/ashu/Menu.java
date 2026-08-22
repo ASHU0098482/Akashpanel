@@ -6,6 +6,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.PixelFormat;
 import android.graphics.PorterDuff;
+import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.RippleDrawable;
 import android.os.Build;
@@ -18,6 +19,7 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.HorizontalScrollView;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.ScrollView;
@@ -57,7 +59,7 @@ public class Menu {
 
     private native String imageBase64();
 
-    // Parte Do Sistema De Janela
+    // System Window
     private WindowManager windowManager;
     private WindowManager.LayoutParams windowManagerParams;
     private FrameLayout frameLayout;
@@ -70,7 +72,7 @@ public class Menu {
     private static List<TextView> tabButtons = new ArrayList<>();
     private static String currentTab = "";
 
-    // Parte do Draw
+    // Draw View
     WindowManager.LayoutParams windowManagerDrawViewParams;
 
     public static native void OnDrawLoad(DrawView drawView, Canvas canvas);
@@ -97,7 +99,7 @@ public class Menu {
         windowManager.addView(drawView, windowManagerDrawViewParams);
     }
 
-    // Parte Do Template Do Menu
+    // Template components
     private static ScrollView scrollView_center;
     private static LinearLayout tabsContainer;
     private static LinearLayout featuresScrollContainer;
@@ -138,19 +140,19 @@ public class Menu {
 
     public static class FontUtil {
         public static android.graphics.Typeface getAimkillFont(Context context) {
-            return android.graphics.Typeface.createFromAsset(context.getAssets(), "fonts/aimkill_font.ttf");
+            return android.graphics.Typeface.DEFAULT_BOLD;
         }
     }
 
     public static android.graphics.Bitmap logoBitmap;
 
-    // Criar Template
+    // Create Template
     public void onCreateTemplate() {
-        // Improved rounded corners for better visibility
-        GradientDrawable gradientDrawable_container = new GradientDrawable();
-        gradientDrawable_container.setColor(0xEE120D22); // High-tech frosted glass obsidian purple
-        gradientDrawable_container.setCornerRadius(utils.FixDP(16));
-        gradientDrawable_container.setStroke(utils.FixDP(1.5f), PrimaryColor); // Glowing Purple Accent Border
+        // High-tech translucent obsidian purple glass background
+        final GradientDrawable gradientDrawable_container = new GradientDrawable();
+        gradientDrawable_container.setColor(Color.parseColor("#F4120924")); // Deep Cyber Obsidian Glass
+        gradientDrawable_container.setCornerRadius(utils.FixDP(20));
+        gradientDrawable_container.setStroke(utils.FixDP(1.5f), PrimaryColor); // Glowing Electric Purple Border
 
         LinearLayout container = new LinearLayout(context);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
@@ -161,23 +163,23 @@ public class Menu {
                 ViewGroup.LayoutParams.WRAP_CONTENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT));
 
-        // Main menu container - compact width
+        // Main menu container
         final LinearLayout container_menu = new LinearLayout(context);
         container_menu.setLayoutParams(new LinearLayout.LayoutParams(
-                utils.FixDP(250),
+                utils.FixDP(265),
                 ViewGroup.LayoutParams.WRAP_CONTENT));
         container_menu.setVisibility(View.GONE);
         container_menu.setOrientation(LinearLayout.VERTICAL);
         container_menu.setBackground(gradientDrawable_container);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            container_menu.setElevation(utils.FixDP(10));
+            container_menu.setElevation(utils.FixDP(12));
         }
 
-        // Floating icon
+        // Floating icon (when minimized)
         final ImageBase64 icon_cheat = new ImageBase64(context);
         icon_cheat.setLayoutParams(new LinearLayout.LayoutParams(
-                utils.FixDP(60),
-                utils.FixDP(60)));
+                utils.FixDP(64),
+                utils.FixDP(64)));
         android.graphics.drawable.Drawable placeholderDrawable = null;
         try {
             byte[] decodeImageBase64 = android.util.Base64.decode(imageBase64(), android.util.Base64.DEFAULT);
@@ -221,7 +223,7 @@ public class Menu {
         iconBackground.setShape(GradientDrawable.OVAL);
         iconBackground.setColor(Color.TRANSPARENT);
         icon_cheat.setBackground(iconBackground);
-        icon_cheat.setPadding(utils.FixDP(5), utils.FixDP(5), utils.FixDP(5), utils.FixDP(5));
+        icon_cheat.setPadding(utils.FixDP(4), utils.FixDP(4), utils.FixDP(4), utils.FixDP(4));
         icon_cheat.setOnTouchListener(onTouchListener());
         icon_cheat.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -236,24 +238,33 @@ public class Menu {
             }
         });
 
-        // Top section of the menu
+        // ==========================================
+        // 🔮 TOP SECTION OF THE MENU (HERO HEADER)
+        // ==========================================
         LinearLayout container_top = new LinearLayout(context);
         container_top.setLayoutParams(new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT));
         container_top.setPadding(
-                utils.FixDP(10),
-                utils.FixDP(10),
-                utils.FixDP(10),
-                utils.FixDP(5));
+                utils.FixDP(12),
+                utils.FixDP(14),
+                utils.FixDP(12),
+                utils.FixDP(10));
         container_top.setGravity(Gravity.CENTER);
-        container_top.setOrientation(LinearLayout.HORIZONTAL);
+        container_top.setOrientation(LinearLayout.VERTICAL);
 
-        // Menu icon in top bar
+        // Circular Logo with Glowing Ring Frame
+        FrameLayout logoFrame = new FrameLayout(context);
+        LinearLayout.LayoutParams logoFrameParams = new LinearLayout.LayoutParams(
+                utils.FixDP(58), utils.FixDP(58));
+        logoFrameParams.setMargins(0, 0, 0, utils.FixDP(6));
+        logoFrame.setLayoutParams(logoFrameParams);
+
         ImageBase64 icon_menu = new ImageBase64(context);
-        icon_menu.setLayoutParams(new LinearLayout.LayoutParams(
-                utils.FixDP(45),
-                utils.FixDP(45)));
+        FrameLayout.LayoutParams iconMenuParams = new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.MATCH_PARENT);
+        icon_menu.setLayoutParams(iconMenuParams);
         if (placeholderDrawable != null) {
             icon_menu.setImageDrawable(placeholderDrawable);
         }
@@ -264,8 +275,42 @@ public class Menu {
                     .error(placeholderDrawable)
                     .into(icon_menu);
         }
+        logoFrame.addView(icon_menu);
+        container_top.addView(logoFrame);
 
-        // Tabs container
+        // Menu Header Title
+        TextView menuTitle = new TextView(context);
+        String name = (RemoteConfig.appName != null && !RemoteConfig.appName.isEmpty())
+                ? RemoteConfig.appName.toUpperCase() : "MOBILE PANEL";
+        menuTitle.setText(name);
+        menuTitle.setTextSize(13.5f);
+        menuTitle.setTextColor(Color.WHITE);
+        menuTitle.setTypeface(Typeface.DEFAULT_BOLD);
+        menuTitle.setLetterSpacing(0.06f);
+        menuTitle.setGravity(Gravity.CENTER);
+        container_top.addView(menuTitle);
+
+        // Subtitle badge
+        TextView menuSubtitle = new TextView(context);
+        menuSubtitle.setText("⚡ CYBER INJECTOR • ONLINE");
+        menuSubtitle.setTextSize(9f);
+        menuSubtitle.setTextColor(Color.parseColor("#C084FC"));
+        menuSubtitle.setTypeface(Typeface.DEFAULT_BOLD);
+        menuSubtitle.setLetterSpacing(0.08f);
+        menuSubtitle.setGravity(Gravity.CENTER);
+        menuSubtitle.setPadding(0, utils.FixDP(2), 0, 0);
+        container_top.addView(menuSubtitle);
+
+        // Divider Line
+        View headerDivider = new View(context);
+        LinearLayout.LayoutParams divParams = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, utils.FixDP(1));
+        divParams.setMargins(utils.FixDP(10), utils.FixDP(10), utils.FixDP(10), 0);
+        headerDivider.setLayoutParams(divParams);
+        headerDivider.setBackgroundColor(Color.parseColor("#2E1C4D"));
+        container_top.addView(headerDivider);
+
+        // Tabs container (for future tab extension)
         HorizontalScrollView tabsScrollView = new HorizontalScrollView(context);
         tabsScrollView.setLayoutParams(new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
@@ -278,14 +323,13 @@ public class Menu {
                 ViewGroup.LayoutParams.MATCH_PARENT));
         tabsContainer.setOrientation(LinearLayout.HORIZONTAL);
         tabsContainer.setPadding(utils.FixDP(5), 0, utils.FixDP(5), 0);
-
         tabsScrollView.addView(tabsContainer);
 
         // Center section where features will be displayed
         final LinearLayout container_center = new LinearLayout(context);
         container_center.setLayoutParams(new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
-                utils.FixDP(220)));
+                utils.FixDP(260)));
         container_center.setGravity(Gravity.CENTER);
 
         // Scroll view for features
@@ -293,7 +337,8 @@ public class Menu {
         scrollView_center.setLayoutParams(new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT));
-        scrollView_center.setPadding(0, utils.FixDP(5), 0, utils.FixDP(5));
+        scrollView_center.setPadding(utils.FixDP(8), utils.FixDP(6), utils.FixDP(8), utils.FixDP(6));
+        scrollView_center.setVerticalScrollBarEnabled(false);
 
         // Container for all feature tabs
         featuresScrollContainer = new LinearLayout(context);
@@ -301,35 +346,36 @@ public class Menu {
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT));
         featuresScrollContainer.setOrientation(LinearLayout.VERTICAL);
-
         scrollView_center.addView(featuresScrollContainer);
 
         // Progress bar
         final ProgressBar progressBar = new ProgressBar(context);
         progressBar.setLayoutParams(new LinearLayout.LayoutParams(
-                utils.FixDP(50),
-                utils.FixDP(50)));
+                utils.FixDP(46),
+                utils.FixDP(46)));
         progressBar.getIndeterminateDrawable().setColorFilter(PrimaryColor, PorterDuff.Mode.SRC_IN);
 
-        // Bottom section with inject/close button
+        // ==========================================
+        // 🔮 BOTTOM SECTION (INJECT / CLOSE BUTTON)
+        // ==========================================
         LinearLayout container_bottom = new LinearLayout(context);
         container_bottom.setLayoutParams(new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT));
         container_bottom.setPadding(
-                utils.FixDP(10),
-                utils.FixDP(10),
-                utils.FixDP(10),
-                utils.FixDP(10));
+                utils.FixDP(12),
+                utils.FixDP(6),
+                utils.FixDP(12),
+                utils.FixDP(12));
         container_bottom.setOrientation(LinearLayout.VERTICAL);
-        container_bottom.setGravity(Gravity.RIGHT | Gravity.CENTER_VERTICAL);
+        container_bottom.setGravity(Gravity.CENTER);
 
-        // Button styling
+        // Button styling: High-tech purple gradient capsule
         GradientDrawable gradientDrawable_inject_close = new GradientDrawable(
                 GradientDrawable.Orientation.LEFT_RIGHT,
-                new int[] { 0xFFA855F7, 0xFF7E22CE }
+                new int[] { Color.parseColor("#9333EA"), Color.parseColor("#7E22CE") }
         );
-        gradientDrawable_inject_close.setCornerRadius(utils.FixDP(10));
+        gradientDrawable_inject_close.setCornerRadius(utils.FixDP(12));
         RippleDrawable rippleDrawable = new RippleDrawable(
                 ColorStateList.valueOf(0x44FFFFFF),
                 gradientDrawable_inject_close,
@@ -339,21 +385,21 @@ public class Menu {
         final Button inject_close = new Button(context);
         inject_close.setLayoutParams(new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
-                utils.FixDP(40)));
+                utils.FixDP(42)));
         inject_close.setPadding(0, 0, 0, 0);
         inject_close.setText("LAUNCH INJECTION ⚡");
-        inject_close.setTextSize(12);
+        inject_close.setTextSize(12.5f);
         inject_close.setTextColor(0xFFFFFFFF);
+        inject_close.setTypeface(Typeface.DEFAULT_BOLD);
+        inject_close.setLetterSpacing(0.04f);
         inject_close.setBackground(rippleDrawable);
-        inject_close.setTypeface(FontUtil.getAimkillFont(context)); // apply custom font
 
         inject_close.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (buttonClick == 0) {
-                    Toast.makeText(context, "Processing injection...", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(context, "Initializing cheat core...", Toast.LENGTH_SHORT).show();
 
-                    // Simulating a successful injection without root commands
                     new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(new Runnable() {
                         @Override
                         public void run() {
@@ -364,15 +410,15 @@ public class Menu {
                                 e.printStackTrace();
                             }
                             progressBar.setVisibility(View.GONE);
-                            inject_close.setText("CLOSE");
+                            inject_close.setText("CLOSE MENU ✕");
                             container_center.removeAllViews();
                             container_center.addView(scrollView_center);
                             buttonClick++;
                             Toast.makeText(context, "✅ Injection successful!", Toast.LENGTH_SHORT).show();
                         }
-                    }, 1000); // 1-second delay for smooth loading simulation
+                    }, 800);
 
-                } else if (buttonClick == 1) {
+                } else if (buttonClick >= 1) {
                     icon_cheat.setVisibility(View.VISIBLE);
                     container_menu.setVisibility(View.GONE);
                     try {
@@ -390,10 +436,6 @@ public class Menu {
         container.addView(container_menu);
 
         container_menu.addView(container_top);
-        container_top.addView(icon_menu);
-
-        // container_menu.addView(tabsScrollView);
-
         container_menu.addView(container_center);
         container_center.addView(progressBar);
 
@@ -415,7 +457,7 @@ public class Menu {
                 ViewGroup.LayoutParams.WRAP_CONTENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT));
         frameLayout.setOnTouchListener(onTouchListener());
-        frameLayout.setAlpha(0.95f);
+        frameLayout.setAlpha(0.96f);
 
         windowManagerParams = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.WRAP_CONTENT,
@@ -436,7 +478,7 @@ public class Menu {
         windowManager.addView(frameLayout, windowManagerParams);
     }
 
-    // OnTouchListener for menu
+    // OnTouchListener for menu dragging
     private View.OnTouchListener onTouchListener() {
         return new View.OnTouchListener() {
             private static final int TOUCH_MOVE_THRESHOLD = 8;
@@ -455,7 +497,7 @@ public class Menu {
                         initialX = x;
                         initialY = y;
                         isMoving = false;
-                        frameLayout.setAlpha(0.8f);
+                        frameLayout.setAlpha(0.85f);
                         return true;
 
                     case MotionEvent.ACTION_MOVE:
@@ -484,7 +526,7 @@ public class Menu {
                         if (!isMoving) {
                             v.performClick();
                         }
-                        frameLayout.setAlpha(0.95f);
+                        frameLayout.setAlpha(0.96f);
                         return true;
 
                     default:
@@ -495,36 +537,29 @@ public class Menu {
         };
     }
 
-    // -------------------- NEW TAB METHODS --------------------
+    // ==========================================
+    // 🔮 TAB & WIDGET BUILDER METHODS
+    // ==========================================
 
-    /**
-     * Create a new tab and its content container (hidden buttons)
-     * 
-     * @param tabName name of the tab
-     */
     public static void addTab(final String tabName) {
         final boolean isFirstTab = tabButtons.isEmpty();
 
-        // Tab button (hidden by default)
         final TextView tabButton = new TextView(context);
-        tabButton.setVisibility(View.GONE); // ⬅️ HIDE IT
+        tabButton.setVisibility(View.GONE);
         tabButtons.add(tabButton);
 
         if (tabsContainer != null) {
-            // Still add to container but invisible
             tabsContainer.addView(tabButton);
         }
 
-        // Create content for this tab
         LinearLayout tabContent = new LinearLayout(context);
         tabContent.setLayoutParams(new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT));
         tabContent.setOrientation(LinearLayout.VERTICAL);
-        tabContent.setPadding(utils.FixDP(10), utils.FixDP(5), utils.FixDP(10), utils.FixDP(5));
+        tabContent.setPadding(utils.FixDP(4), utils.FixDP(2), utils.FixDP(4), utils.FixDP(2));
         tabContent.setVisibility(isFirstTab ? View.VISIBLE : View.GONE);
 
-        // Store & add it
         tabContentContainers.put(tabName, tabContent);
         featuresScrollContainer.addView(tabContent);
 
@@ -532,9 +567,6 @@ public class Menu {
             currentTab = tabName;
     }
 
-    /**
-     * Select a tab and show its content
-     */
     private static void selectTab(String tabName) {
         if (tabName.equals(currentTab))
             return;
@@ -547,64 +579,78 @@ public class Menu {
     }
 
     /**
-     * Add a category heading within the current tab
+     * Add a category heading within the current tab (Cyber Gradient Pill)
      */
     public static void addCategory(String name) {
         if (currentTab.isEmpty() || !tabContentContainers.containsKey(currentTab)) {
-            return; // No tab selected
+            return;
         }
 
-        GradientDrawable gradientDrawable = new GradientDrawable();
-        gradientDrawable.setColor(PrimaryColor);
-        gradientDrawable.setCornerRadius(utils.FixDP(6));
+        GradientDrawable gradientDrawable = new GradientDrawable(
+                GradientDrawable.Orientation.LEFT_RIGHT,
+                new int[] { Color.parseColor("#9333EA"), Color.parseColor("#6B21A8") }
+        );
+        gradientDrawable.setCornerRadius(utils.FixDP(8));
 
         LinearLayout linearLayout = new LinearLayout(context);
         linearLayout.setLayoutParams(new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
-                utils.FixDP(28)));
+                utils.FixDP(30)));
         linearLayout.setBackground(gradientDrawable);
         linearLayout.setGravity(Gravity.CENTER);
-        linearLayout.setPadding(utils.FixDP(8), utils.FixDP(2), utils.FixDP(8), utils.FixDP(2));
+        linearLayout.setPadding(utils.FixDP(10), utils.FixDP(3), utils.FixDP(10), utils.FixDP(3));
 
         LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) linearLayout.getLayoutParams();
-        params.setMargins(0, utils.FixDP(10), 0, utils.FixDP(4));
+        params.setMargins(0, utils.FixDP(8), 0, utils.FixDP(6));
         linearLayout.setLayoutParams(params);
 
         TextView textView = new TextView(context);
-        textView.setText(name);
-        textView.setTextSize(11);
+        textView.setText(name.toUpperCase());
+        textView.setTextSize(11f);
         textView.setTextColor(0xFFFFFFFF);
-        textView.setTypeface(FontUtil.getAimkillFont(context)); // apply custom font
+        textView.setTypeface(Typeface.DEFAULT_BOLD);
+        textView.setLetterSpacing(0.06f);
 
         linearLayout.addView(textView);
         tabContentContainers.get(currentTab).addView(linearLayout);
     }
 
     /**
-     * Add a switch to the current tab
+     * Add a switch to the current tab (Cyber Tile Card)
      */
     public static void addSwitch(String name, final int ID) {
         LinearLayout linearLayout = new LinearLayout(context);
-        linearLayout.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+        linearLayout.setLayoutParams(new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT));
-        linearLayout.setPadding(utils.FixDP(8), utils.FixDP(4), utils.FixDP(8), utils.FixDP(4));
+        linearLayout.setPadding(utils.FixDP(10), utils.FixDP(6), utils.FixDP(10), utils.FixDP(6));
         linearLayout.setOrientation(LinearLayout.HORIZONTAL);
         linearLayout.setGravity(Gravity.CENTER_VERTICAL);
+
+        // Cyber Tile background
+        GradientDrawable tileBg = new GradientDrawable();
+        tileBg.setColor(Color.parseColor("#18102B"));
+        tileBg.setCornerRadius(utils.FixDP(10));
+        tileBg.setStroke(utils.FixDP(1), Color.parseColor("#2C1C4C"));
+        linearLayout.setBackground(tileBg);
+
+        LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) linearLayout.getLayoutParams();
+        params.setMargins(0, utils.FixDP(3), 0, utils.FixDP(3));
+        linearLayout.setLayoutParams(params);
 
         TextView textView = new TextView(context);
         textView.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         textView.setGravity(Gravity.LEFT | Gravity.CENTER_VERTICAL);
         textView.setText(name);
-        textView.setTextSize(11);
-        textView.setTypeface(FontUtil.getAimkillFont(context)); // apply custom font
+        textView.setTextSize(11.5f);
+        textView.setTypeface(Typeface.DEFAULT_BOLD);
 
         final SwitchStyle switchStyle = new SwitchStyle(context);
-        switchStyle.setLayoutParams(new LinearLayout.LayoutParams(utils.FixDP(40), utils.FixDP(22)));
+        switchStyle.setLayoutParams(new LinearLayout.LayoutParams(utils.FixDP(42), utils.FixDP(23)));
 
-        final int colorOff = 0xFF888888; // Gray color
-        final int colorOn = 0xFFFFFFFF; // White color
+        final int colorOff = 0xFF94A3B8; // Cool Slate
+        final int colorOn = 0xFFFFFFFF;  // Bright White
 
-        // Set initial text color
         textView.setTextColor(switchStyle.isChecked() ? colorOn : colorOff);
 
         switchStyle.setOnCheckedChangeListener(new SwitchStyle.OnCheckedChangeListener() {
@@ -612,12 +658,11 @@ public class Menu {
             public void onCheckedChanged(SwitchStyle view, boolean isChecked) {
                 ChangesID(ID, 0);
 
-                // Animate text color change
                 int startColor = ((TextView) textView).getCurrentTextColor();
                 int endColor = isChecked ? colorOn : colorOff;
 
                 ValueAnimator colorAnimation = ValueAnimator.ofObject(new ArgbEvaluator(), startColor, endColor);
-                colorAnimation.setDuration(250); // duration in ms
+                colorAnimation.setDuration(250);
                 colorAnimation.setInterpolator(new DecelerateInterpolator());
                 colorAnimation.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
                     @Override
@@ -643,16 +688,27 @@ public class Menu {
 
     public static void addSeekBar(final String name, int value, int max, final String type, final int ID) {
         LinearLayout linearLayout = new LinearLayout(context);
-        linearLayout.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+        linearLayout.setLayoutParams(new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT));
-        linearLayout.setPadding(utils.FixDP(8), utils.FixDP(4), utils.FixDP(8), utils.FixDP(4));
+        linearLayout.setPadding(utils.FixDP(10), utils.FixDP(6), utils.FixDP(10), utils.FixDP(6));
         linearLayout.setOrientation(LinearLayout.VERTICAL);
+
+        GradientDrawable tileBg = new GradientDrawable();
+        tileBg.setColor(Color.parseColor("#18102B"));
+        tileBg.setCornerRadius(utils.FixDP(10));
+        tileBg.setStroke(utils.FixDP(1), Color.parseColor("#2C1C4C"));
+        linearLayout.setBackground(tileBg);
+
+        LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) linearLayout.getLayoutParams();
+        params.setMargins(0, utils.FixDP(3), 0, utils.FixDP(3));
+        linearLayout.setLayoutParams(params);
 
         final TextView textView = new TextView(context);
         textView.setText(name.concat(": ") + value + type);
-        textView.setTextSize(11);
+        textView.setTextSize(11f);
         textView.setTextColor(0xFFFFFFFF);
-        textView.setTypeface(FontUtil.getAimkillFont(context)); // apply custom font
+        textView.setTypeface(Typeface.DEFAULT_BOLD);
         if (type.equals("Color")) {
             if (value == 0) {
                 textView.setText(Html.fromHtml(name + ": <font color='#ffffff'>" + "White" + "</font>"));
@@ -756,14 +812,10 @@ public class Menu {
             }
 
             @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-
-            }
+            public void onStartTrackingTouch(SeekBar seekBar) {}
 
             @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-
-            }
+            public void onStopTrackingTouch(SeekBar seekBar) {}
         });
 
         linearLayout.addView(textView);
