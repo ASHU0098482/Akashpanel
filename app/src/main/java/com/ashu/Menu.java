@@ -50,8 +50,8 @@ public class Menu {
 
     // Variables Menu
     private int buttonClick = 0;
-    public static int PrimaryColor = 0xFFFFB800; // Golden accent
-    public static int TabSelectedColor = 0xFFFFB800; // Golden accent for selected tabs
+    public static int PrimaryColor = 0xFFA855F7; // Neon Purple accent
+    public static int TabSelectedColor = 0xFFA855F7; // Neon Purple accent for selected tabs
     private static Context context;
     private static Utils utils;
 
@@ -148,9 +148,9 @@ public class Menu {
     public void onCreateTemplate() {
         // Improved rounded corners for better visibility
         GradientDrawable gradientDrawable_container = new GradientDrawable();
-        gradientDrawable_container.setColor(0xDC151515); // Semi-transparent dark grey
-        gradientDrawable_container.setCornerRadius(utils.FixDP(12));
-        gradientDrawable_container.setStroke(utils.FixDP(2), PrimaryColor); // Glowing Purple Accent Border
+        gradientDrawable_container.setColor(0xEE120D22); // High-tech frosted glass obsidian purple
+        gradientDrawable_container.setCornerRadius(utils.FixDP(16));
+        gradientDrawable_container.setStroke(utils.FixDP(1.5f), PrimaryColor); // Glowing Purple Accent Border
 
         LinearLayout container = new LinearLayout(context);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
@@ -325,11 +325,13 @@ public class Menu {
         container_bottom.setGravity(Gravity.RIGHT | Gravity.CENTER_VERTICAL);
 
         // Button styling
-        GradientDrawable gradientDrawable_inject_close = new GradientDrawable();
-        gradientDrawable_inject_close.setColor(PrimaryColor);
-        gradientDrawable_inject_close.setCornerRadius(utils.FixDP(8));
+        GradientDrawable gradientDrawable_inject_close = new GradientDrawable(
+                GradientDrawable.Orientation.LEFT_RIGHT,
+                new int[] { 0xFFA855F7, 0xFF7E22CE }
+        );
+        gradientDrawable_inject_close.setCornerRadius(utils.FixDP(10));
         RippleDrawable rippleDrawable = new RippleDrawable(
-                ColorStateList.valueOf(0xFF333333),
+                ColorStateList.valueOf(0x44FFFFFF),
                 gradientDrawable_inject_close,
                 null);
 
@@ -339,7 +341,7 @@ public class Menu {
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 utils.FixDP(40)));
         inject_close.setPadding(0, 0, 0, 0);
-        inject_close.setText("INJECT");
+        inject_close.setText("LAUNCH INJECTION ⚡");
         inject_close.setTextSize(12);
         inject_close.setTextColor(0xFFFFFFFF);
         inject_close.setBackground(rippleDrawable);

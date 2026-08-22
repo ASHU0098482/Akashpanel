@@ -392,16 +392,32 @@ public class MainActivity extends Activity {
         splashText.setLetterSpacing(0.15f);
         splashRoot.addView(splashText);
 
-        // --- PHASE 3: Subtitle glow line ---
+        // --- PHASE 3: Subtitle glow line & Tag ---
         final View glowLine = new View(this);
         android.widget.FrameLayout.LayoutParams glowParams = new android.widget.FrameLayout.LayoutParams(
                 0, dpToPx(2));
         glowParams.gravity = android.view.Gravity.CENTER_HORIZONTAL | android.view.Gravity.CENTER_VERTICAL;
-        glowParams.topMargin = dpToPx(185);
+        glowParams.topMargin = dpToPx(180);
         glowLine.setLayoutParams(glowParams);
         glowLine.setBackgroundColor(Color.parseColor("#A855F7"));
         glowLine.setAlpha(0f);
         splashRoot.addView(glowLine);
+
+        final TextView splashSub = new TextView(this);
+        splashSub.setText("⚡ CYBER EDITION • ONLINE");
+        splashSub.setTextSize(11);
+        splashSub.setTextColor(Color.parseColor("#C084FC"));
+        splashSub.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
+        splashSub.setGravity(android.view.Gravity.CENTER);
+        splashSub.setLetterSpacing(0.12f);
+        splashSub.setAlpha(0f);
+        android.widget.FrameLayout.LayoutParams subParams = new android.widget.FrameLayout.LayoutParams(
+                android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
+                android.widget.FrameLayout.LayoutParams.WRAP_CONTENT);
+        subParams.gravity = android.view.Gravity.CENTER;
+        subParams.topMargin = dpToPx(198);
+        splashSub.setLayoutParams(subParams);
+        splashRoot.addView(splashSub);
 
         setContentView(splashRoot);
 
@@ -467,7 +483,7 @@ public class MainActivity extends Activity {
             }, 300);
         }, 1600);
 
-        // STEP 4: Glow line expands (after text is fully revealed)
+        // STEP 4: Glow line expands & subtitle reveals
         int textRevealDuration = 1600 + 300 + (appName.length() * 80) + 200;
         handler.postDelayed(() -> {
             glowLine.setAlpha(1f);
@@ -481,6 +497,7 @@ public class MainActivity extends Activity {
                 glowLine.setLayoutParams(lp);
             });
             lineAnim.start();
+            splashSub.animate().alpha(1f).setDuration(400).start();
         }, textRevealDuration);
 
         // STEP 5: Full neon glow pulse on text (peak moment)
