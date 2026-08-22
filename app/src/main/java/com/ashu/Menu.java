@@ -148,11 +148,11 @@ public class Menu {
 
     // Create Template
     public void onCreateTemplate() {
-        // High-tech translucent obsidian purple glass background
+        // High-tech translucent obsidian purple glass background with double cyber glow stroke
         final GradientDrawable gradientDrawable_container = new GradientDrawable();
-        gradientDrawable_container.setColor(Color.parseColor("#F4120924")); // Deep Cyber Obsidian Glass
-        gradientDrawable_container.setCornerRadius(utils.FixDP(20));
-        gradientDrawable_container.setStroke(utils.FixDP(1.5f), PrimaryColor); // Glowing Electric Purple Border
+        gradientDrawable_container.setColor(Color.parseColor("#F6100820")); // Ultra Deep Cyber Glass
+        gradientDrawable_container.setCornerRadius(utils.FixDP(22));
+        gradientDrawable_container.setStroke(utils.FixDP(1.5f), Color.parseColor("#9333EA")); // Neon Purple Border
 
         LinearLayout container = new LinearLayout(context);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
@@ -166,13 +166,13 @@ public class Menu {
         // Main menu container
         final LinearLayout container_menu = new LinearLayout(context);
         container_menu.setLayoutParams(new LinearLayout.LayoutParams(
-                utils.FixDP(265),
+                utils.FixDP(275),
                 ViewGroup.LayoutParams.WRAP_CONTENT));
         container_menu.setVisibility(View.GONE);
         container_menu.setOrientation(LinearLayout.VERTICAL);
         container_menu.setBackground(gradientDrawable_container);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            container_menu.setElevation(utils.FixDP(12));
+            container_menu.setElevation(utils.FixDP(14));
         }
 
         // Floating icon (when minimized)
@@ -239,24 +239,24 @@ public class Menu {
         });
 
         // ==========================================
-        // 🔮 TOP SECTION OF THE MENU (HERO HEADER)
+        // 🔮 TOP SECTION (FUTURISTIC CYBER HUD HEADER)
         // ==========================================
         LinearLayout container_top = new LinearLayout(context);
         container_top.setLayoutParams(new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT));
         container_top.setPadding(
-                utils.FixDP(12),
                 utils.FixDP(14),
-                utils.FixDP(12),
-                utils.FixDP(10));
+                utils.FixDP(14),
+                utils.FixDP(14),
+                utils.FixDP(8));
         container_top.setGravity(Gravity.CENTER);
         container_top.setOrientation(LinearLayout.VERTICAL);
 
         // Circular Logo with Glowing Ring Frame
         FrameLayout logoFrame = new FrameLayout(context);
         LinearLayout.LayoutParams logoFrameParams = new LinearLayout.LayoutParams(
-                utils.FixDP(58), utils.FixDP(58));
+                utils.FixDP(56), utils.FixDP(56));
         logoFrameParams.setMargins(0, 0, 0, utils.FixDP(6));
         logoFrame.setLayoutParams(logoFrameParams);
 
@@ -283,34 +283,56 @@ public class Menu {
         String name = (RemoteConfig.appName != null && !RemoteConfig.appName.isEmpty())
                 ? RemoteConfig.appName.toUpperCase() : "MOBILE PANEL";
         menuTitle.setText(name);
-        menuTitle.setTextSize(13.5f);
+        menuTitle.setTextSize(14f);
         menuTitle.setTextColor(Color.WHITE);
         menuTitle.setTypeface(Typeface.DEFAULT_BOLD);
-        menuTitle.setLetterSpacing(0.06f);
+        menuTitle.setLetterSpacing(0.08f);
         menuTitle.setGravity(Gravity.CENTER);
         container_top.addView(menuTitle);
 
-        // Subtitle badge
-        TextView menuSubtitle = new TextView(context);
-        menuSubtitle.setText("⚡ CYBER INJECTOR • ONLINE");
-        menuSubtitle.setTextSize(9f);
-        menuSubtitle.setTextColor(Color.parseColor("#C084FC"));
-        menuSubtitle.setTypeface(Typeface.DEFAULT_BOLD);
-        menuSubtitle.setLetterSpacing(0.08f);
-        menuSubtitle.setGravity(Gravity.CENTER);
-        menuSubtitle.setPadding(0, utils.FixDP(2), 0, 0);
-        container_top.addView(menuSubtitle);
+        // Live Status Pill Badge
+        LinearLayout statusBadge = new LinearLayout(context);
+        statusBadge.setOrientation(LinearLayout.HORIZONTAL);
+        statusBadge.setGravity(Gravity.CENTER);
+        statusBadge.setPadding(utils.FixDP(10), utils.FixDP(3), utils.FixDP(10), utils.FixDP(3));
 
-        // Divider Line
+        GradientDrawable statusBadgeBg = new GradientDrawable();
+        statusBadgeBg.setColor(Color.parseColor("#22143B"));
+        statusBadgeBg.setCornerRadius(utils.FixDP(20));
+        statusBadgeBg.setStroke(utils.FixDP(1), Color.parseColor("#7E22CE"));
+        statusBadge.setBackground(statusBadgeBg);
+
+        LinearLayout.LayoutParams sbParams = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        sbParams.setMargins(0, utils.FixDP(4), 0, 0);
+        statusBadge.setLayoutParams(sbParams);
+
+        TextView statusDot = new TextView(context);
+        statusDot.setText("● ");
+        statusDot.setTextColor(Color.parseColor("#4ADE80")); // Neon Green LED
+        statusDot.setTextSize(9f);
+        statusBadge.addView(statusDot);
+
+        TextView statusText = new TextView(context);
+        statusText.setText("SYSTEM ACTIVE • v7.0");
+        statusText.setTextSize(8.5f);
+        statusText.setTextColor(Color.parseColor("#E9D5FF"));
+        statusText.setTypeface(Typeface.DEFAULT_BOLD);
+        statusText.setLetterSpacing(0.06f);
+        statusBadge.addView(statusText);
+
+        container_top.addView(statusBadge);
+
+        // Divider Line with Neon Glow
         View headerDivider = new View(context);
         LinearLayout.LayoutParams divParams = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, utils.FixDP(1));
-        divParams.setMargins(utils.FixDP(10), utils.FixDP(10), utils.FixDP(10), 0);
+        divParams.setMargins(utils.FixDP(12), utils.FixDP(10), utils.FixDP(12), 0);
         headerDivider.setLayoutParams(divParams);
-        headerDivider.setBackgroundColor(Color.parseColor("#2E1C4D"));
+        headerDivider.setBackgroundColor(Color.parseColor("#312052"));
         container_top.addView(headerDivider);
 
-        // Tabs container (for future tab extension)
+        // Tabs container
         HorizontalScrollView tabsScrollView = new HorizontalScrollView(context);
         tabsScrollView.setLayoutParams(new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
@@ -329,7 +351,7 @@ public class Menu {
         final LinearLayout container_center = new LinearLayout(context);
         container_center.setLayoutParams(new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
-                utils.FixDP(260)));
+                utils.FixDP(270)));
         container_center.setGravity(Gravity.CENTER);
 
         // Scroll view for features
@@ -337,7 +359,7 @@ public class Menu {
         scrollView_center.setLayoutParams(new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT));
-        scrollView_center.setPadding(utils.FixDP(8), utils.FixDP(6), utils.FixDP(8), utils.FixDP(6));
+        scrollView_center.setPadding(utils.FixDP(8), utils.FixDP(4), utils.FixDP(8), utils.FixDP(4));
         scrollView_center.setVerticalScrollBarEnabled(false);
 
         // Container for all feature tabs
@@ -351,12 +373,12 @@ public class Menu {
         // Progress bar
         final ProgressBar progressBar = new ProgressBar(context);
         progressBar.setLayoutParams(new LinearLayout.LayoutParams(
-                utils.FixDP(46),
-                utils.FixDP(46)));
+                utils.FixDP(44),
+                utils.FixDP(44)));
         progressBar.getIndeterminateDrawable().setColorFilter(PrimaryColor, PorterDuff.Mode.SRC_IN);
 
         // ==========================================
-        // 🔮 BOTTOM SECTION (INJECT / CLOSE BUTTON)
+        // 🔮 BOTTOM SECTION (CYBER HUD BUTTON)
         // ==========================================
         LinearLayout container_bottom = new LinearLayout(context);
         container_bottom.setLayoutParams(new LinearLayout.LayoutParams(
@@ -366,32 +388,32 @@ public class Menu {
                 utils.FixDP(12),
                 utils.FixDP(6),
                 utils.FixDP(12),
-                utils.FixDP(12));
+                utils.FixDP(14));
         container_bottom.setOrientation(LinearLayout.VERTICAL);
         container_bottom.setGravity(Gravity.CENTER);
 
-        // Button styling: High-tech purple gradient capsule
+        // High-tech Cyber Gradient Bevel Button
         GradientDrawable gradientDrawable_inject_close = new GradientDrawable(
                 GradientDrawable.Orientation.LEFT_RIGHT,
-                new int[] { Color.parseColor("#9333EA"), Color.parseColor("#7E22CE") }
+                new int[] { Color.parseColor("#9333EA"), Color.parseColor("#6B21A8") }
         );
-        gradientDrawable_inject_close.setCornerRadius(utils.FixDP(12));
+        gradientDrawable_inject_close.setCornerRadius(utils.FixDP(14));
+        gradientDrawable_inject_close.setStroke(utils.FixDP(1.2f), Color.parseColor("#C084FC"));
         RippleDrawable rippleDrawable = new RippleDrawable(
                 ColorStateList.valueOf(0x44FFFFFF),
                 gradientDrawable_inject_close,
                 null);
 
-        // Inject/Close button
         final Button inject_close = new Button(context);
         inject_close.setLayoutParams(new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 utils.FixDP(42)));
         inject_close.setPadding(0, 0, 0, 0);
-        inject_close.setText("LAUNCH INJECTION ⚡");
+        inject_close.setText("[ ⚡ INJECT CORE ]");
         inject_close.setTextSize(12.5f);
         inject_close.setTextColor(0xFFFFFFFF);
         inject_close.setTypeface(Typeface.DEFAULT_BOLD);
-        inject_close.setLetterSpacing(0.04f);
+        inject_close.setLetterSpacing(0.08f);
         inject_close.setBackground(rippleDrawable);
 
         inject_close.setOnClickListener(new View.OnClickListener() {
@@ -410,7 +432,7 @@ public class Menu {
                                 e.printStackTrace();
                             }
                             progressBar.setVisibility(View.GONE);
-                            inject_close.setText("CLOSE MENU ✕");
+                            inject_close.setText("[ ✕ HIDE HUD ]");
                             container_center.removeAllViews();
                             container_center.addView(scrollView_center);
                             buttonClick++;
@@ -538,7 +560,7 @@ public class Menu {
     }
 
     // ==========================================
-    // 🔮 TAB & WIDGET BUILDER METHODS
+    // 🔮 CYBER HUD WIDGET BUILDERS
     // ==========================================
 
     public static void addTab(final String tabName) {
@@ -557,7 +579,7 @@ public class Menu {
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT));
         tabContent.setOrientation(LinearLayout.VERTICAL);
-        tabContent.setPadding(utils.FixDP(4), utils.FixDP(2), utils.FixDP(4), utils.FixDP(2));
+        tabContent.setPadding(utils.FixDP(2), utils.FixDP(2), utils.FixDP(2), utils.FixDP(2));
         tabContent.setVisibility(isFirstTab ? View.VISIBLE : View.GONE);
 
         tabContentContainers.put(tabName, tabContent);
@@ -579,98 +601,114 @@ public class Menu {
     }
 
     /**
-     * Add a category heading within the current tab (Cyber Gradient Pill)
+     * Add a category heading (Futuristic Cyber HUD Bracket Header)
      */
     public static void addCategory(String name) {
         if (currentTab.isEmpty() || !tabContentContainers.containsKey(currentTab)) {
             return;
         }
 
-        GradientDrawable gradientDrawable = new GradientDrawable(
-                GradientDrawable.Orientation.LEFT_RIGHT,
-                new int[] { Color.parseColor("#9333EA"), Color.parseColor("#6B21A8") }
-        );
-        gradientDrawable.setCornerRadius(utils.FixDP(8));
-
-        LinearLayout linearLayout = new LinearLayout(context);
-        linearLayout.setLayoutParams(new LinearLayout.LayoutParams(
+        LinearLayout categoryRow = new LinearLayout(context);
+        categoryRow.setLayoutParams(new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 utils.FixDP(30)));
-        linearLayout.setBackground(gradientDrawable);
-        linearLayout.setGravity(Gravity.CENTER);
-        linearLayout.setPadding(utils.FixDP(10), utils.FixDP(3), utils.FixDP(10), utils.FixDP(3));
+        categoryRow.setOrientation(LinearLayout.HORIZONTAL);
+        categoryRow.setGravity(Gravity.CENTER_VERTICAL);
+        categoryRow.setPadding(utils.FixDP(10), 0, utils.FixDP(10), 0);
 
-        LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) linearLayout.getLayoutParams();
-        params.setMargins(0, utils.FixDP(8), 0, utils.FixDP(6));
-        linearLayout.setLayoutParams(params);
+        GradientDrawable catBg = new GradientDrawable();
+        catBg.setColor(Color.parseColor("#20133A"));
+        catBg.setCornerRadius(utils.FixDP(8));
+        catBg.setStroke(utils.FixDP(1), Color.parseColor("#7E22CE"));
+        categoryRow.setBackground(catBg);
+
+        LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) categoryRow.getLayoutParams();
+        params.setMargins(0, utils.FixDP(8), 0, utils.FixDP(5));
+        categoryRow.setLayoutParams(params);
+
+        TextView iconTag = new TextView(context);
+        iconTag.setText("⚡ ");
+        iconTag.setTextSize(11f);
+        categoryRow.addView(iconTag);
 
         TextView textView = new TextView(context);
-        textView.setText(name.toUpperCase());
-        textView.setTextSize(11f);
-        textView.setTextColor(0xFFFFFFFF);
+        textView.setText("// " + name.toUpperCase() + " //");
+        textView.setTextSize(10.5f);
+        textView.setTextColor(Color.parseColor("#E9D5FF"));
         textView.setTypeface(Typeface.DEFAULT_BOLD);
-        textView.setLetterSpacing(0.06f);
+        textView.setLetterSpacing(0.08f);
+        categoryRow.addView(textView);
 
-        linearLayout.addView(textView);
-        tabContentContainers.get(currentTab).addView(linearLayout);
+        tabContentContainers.get(currentTab).addView(categoryRow);
     }
 
     /**
-     * Add a switch to the current tab (Cyber Tile Card)
+     * Add a switch to the current tab (Cyber HUD Modular Card Tile)
      */
     public static void addSwitch(String name, final int ID) {
-        LinearLayout linearLayout = new LinearLayout(context);
+        final LinearLayout linearLayout = new LinearLayout(context);
         linearLayout.setLayoutParams(new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT));
-        linearLayout.setPadding(utils.FixDP(10), utils.FixDP(6), utils.FixDP(10), utils.FixDP(6));
+        linearLayout.setPadding(utils.FixDP(10), utils.FixDP(8), utils.FixDP(10), utils.FixDP(8));
         linearLayout.setOrientation(LinearLayout.HORIZONTAL);
         linearLayout.setGravity(Gravity.CENTER_VERTICAL);
 
         // Cyber Tile background
-        GradientDrawable tileBg = new GradientDrawable();
-        tileBg.setColor(Color.parseColor("#18102B"));
-        tileBg.setCornerRadius(utils.FixDP(10));
-        tileBg.setStroke(utils.FixDP(1), Color.parseColor("#2C1C4C"));
+        final GradientDrawable tileBg = new GradientDrawable();
+        tileBg.setColor(Color.parseColor("#170F2B"));
+        tileBg.setCornerRadius(utils.FixDP(12));
+        tileBg.setStroke(utils.FixDP(1), Color.parseColor("#2C1B4A"));
         linearLayout.setBackground(tileBg);
 
         LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) linearLayout.getLayoutParams();
         params.setMargins(0, utils.FixDP(3), 0, utils.FixDP(3));
         linearLayout.setLayoutParams(params);
 
-        TextView textView = new TextView(context);
-        textView.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
-        textView.setGravity(Gravity.LEFT | Gravity.CENTER_VERTICAL);
-        textView.setText(name);
-        textView.setTextSize(11.5f);
-        textView.setTypeface(Typeface.DEFAULT_BOLD);
+        // Left Column: Feature Title + Status Tag
+        LinearLayout textCol = new LinearLayout(context);
+        textCol.setOrientation(LinearLayout.VERTICAL);
+        textCol.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+
+        final TextView titleView = new TextView(context);
+        titleView.setText(name);
+        titleView.setTextSize(11.5f);
+        titleView.setTextColor(Color.parseColor("#CBD5E1"));
+        titleView.setTypeface(Typeface.DEFAULT_BOLD);
+        textCol.addView(titleView);
+
+        final TextView statusTag = new TextView(context);
+        statusTag.setText("[ OFF ]");
+        statusTag.setTextSize(8.5f);
+        statusTag.setTextColor(Color.parseColor("#64748B"));
+        statusTag.setTypeface(Typeface.DEFAULT_BOLD);
+        statusTag.setLetterSpacing(0.04f);
+        statusTag.setPadding(0, utils.FixDP(1), 0, 0);
+        textCol.addView(statusTag);
+
+        linearLayout.addView(textCol);
 
         final SwitchStyle switchStyle = new SwitchStyle(context);
         switchStyle.setLayoutParams(new LinearLayout.LayoutParams(utils.FixDP(42), utils.FixDP(23)));
-
-        final int colorOff = 0xFF94A3B8; // Cool Slate
-        final int colorOn = 0xFFFFFFFF;  // Bright White
-
-        textView.setTextColor(switchStyle.isChecked() ? colorOn : colorOff);
 
         switchStyle.setOnCheckedChangeListener(new SwitchStyle.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(SwitchStyle view, boolean isChecked) {
                 ChangesID(ID, 0);
 
-                int startColor = ((TextView) textView).getCurrentTextColor();
-                int endColor = isChecked ? colorOn : colorOff;
-
-                ValueAnimator colorAnimation = ValueAnimator.ofObject(new ArgbEvaluator(), startColor, endColor);
-                colorAnimation.setDuration(250);
-                colorAnimation.setInterpolator(new DecelerateInterpolator());
-                colorAnimation.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-                    @Override
-                    public void onAnimationUpdate(ValueAnimator animator) {
-                        textView.setTextColor((int) animator.getAnimatedValue());
-                    }
-                });
-                colorAnimation.start();
+                if (isChecked) {
+                    titleView.setTextColor(Color.WHITE);
+                    statusTag.setText("[ ACTIVE ⚡ ]");
+                    statusTag.setTextColor(Color.parseColor("#C084FC"));
+                    tileBg.setColor(Color.parseColor("#22143D"));
+                    tileBg.setStroke(utils.FixDP(1.2f), Color.parseColor("#A855F7"));
+                } else {
+                    titleView.setTextColor(Color.parseColor("#CBD5E1"));
+                    statusTag.setText("[ OFF ]");
+                    statusTag.setTextColor(Color.parseColor("#64748B"));
+                    tileBg.setColor(Color.parseColor("#170F2B"));
+                    tileBg.setStroke(utils.FixDP(1), Color.parseColor("#2C1B4A"));
+                }
             }
         });
 
@@ -681,7 +719,6 @@ public class Menu {
             }
         });
 
-        linearLayout.addView(textView);
         linearLayout.addView(switchStyle);
         tabContentContainers.get(currentTab).addView(linearLayout);
     }
@@ -691,13 +728,13 @@ public class Menu {
         linearLayout.setLayoutParams(new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT));
-        linearLayout.setPadding(utils.FixDP(10), utils.FixDP(6), utils.FixDP(10), utils.FixDP(6));
+        linearLayout.setPadding(utils.FixDP(10), utils.FixDP(8), utils.FixDP(10), utils.FixDP(8));
         linearLayout.setOrientation(LinearLayout.VERTICAL);
 
         GradientDrawable tileBg = new GradientDrawable();
-        tileBg.setColor(Color.parseColor("#18102B"));
-        tileBg.setCornerRadius(utils.FixDP(10));
-        tileBg.setStroke(utils.FixDP(1), Color.parseColor("#2C1C4C"));
+        tileBg.setColor(Color.parseColor("#170F2B"));
+        tileBg.setCornerRadius(utils.FixDP(12));
+        tileBg.setStroke(utils.FixDP(1), Color.parseColor("#2C1B4A"));
         linearLayout.setBackground(tileBg);
 
         LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) linearLayout.getLayoutParams();

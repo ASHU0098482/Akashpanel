@@ -171,13 +171,9 @@ public class SwitchStyle extends View implements Checkable {
                 0,
                 0Xff000000);//0X33000000;
 
-        uncheckColor = optColor(typedArray,
-                Color.parseColor("#ff000000"),
-                0Xff000000);//0XffDDDDDD;
+        uncheckColor = Color.parseColor("#1F1538");
 
-        checkedColor = optColor(typedArray,
-                Menu.PrimaryColor,
-                Menu.PrimaryColor);
+        checkedColor = Color.parseColor("#9333EA");
 
         borderWidth = optPixelSize(typedArray,
                 0,
@@ -197,13 +193,9 @@ public class SwitchStyle extends View implements Checkable {
                 0,
                 Color.WHITE);//Color.WHITE;
 
-        uncheckButtonColor = optColor(typedArray,
-                Color.parseColor("#ff000000"),
-                buttonColor);
+        uncheckButtonColor = Color.parseColor("#64748B");
 
-        checkedButtonColor = optColor(typedArray,
-                Menu.PrimaryColor,
-                buttonColor);
+        checkedButtonColor = Color.parseColor("#FFFFFF");
 
         int effectDuration = optInt(typedArray,
                 0,
