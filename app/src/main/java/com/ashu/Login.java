@@ -124,7 +124,7 @@ public class Login {
         titleLayout.setGravity(Gravity.CENTER);
 
         String remoteAppName = RemoteConfig.appName;
-        String firstWord = "VIP";
+        String firstWord = "JACK";
         String secondWord = "PANEL";
         if (remoteAppName != null && remoteAppName.contains(" ")) {
             int spaceIdx = remoteAppName.indexOf(" ");

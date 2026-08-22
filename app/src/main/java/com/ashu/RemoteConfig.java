@@ -13,8 +13,8 @@ public class RemoteConfig {
     public static final String CONFIG_URL = "https://raw.githubusercontent.com/ASHU0098482/status/main/config.json";
 
     public static boolean isOnline = true;
-    public static String maintenanceMessage = "VIP Panel is currently under maintenance. Please try again later.";
-    public static String appName = "VIP PANEL";
+    public static String maintenanceMessage = "JACK PANEL is currently active.";
+    public static String appName = "JACK PANEL";
 
     public static boolean showNotice = false;
     public static String noticeTitle = "";
@@ -26,15 +26,15 @@ public class RemoteConfig {
     public static String keyauthVersion = "1.0";
     public static String keyauthUrl = "https://keyauth.win/api/1.3/";
 
-    public static int remoteVersionCode = 16;
+    public static int remoteVersionCode = 47;
     public static String updateUrl = "";
 
     public static boolean showWebsiteBanner = false;
 
     // Remote customizable UI assets
-    public static String logoUrl = "https://raw.githubusercontent.com/ASHU0098482/status/main/skull_logo.png";
+    public static String logoUrl = "https://raw.githubusercontent.com/ASHU0098482/status/main/jack_logo.png";
     public static String backgroundUrl = "";
-    public static String floatingIconUrl = "";
+    public static String floatingIconUrl = "https://raw.githubusercontent.com/ASHU0098482/status/main/jack_logo_small.png";
 
     public static void fetchConfig(Runnable onComplete) {
         new Thread(() -> {
@@ -80,7 +80,7 @@ public class RemoteConfig {
                         
                         isOnline = status.equalsIgnoreCase("online");
                         maintenanceMessage = json.optString("maintenance_message", "APK is currently under maintenance.");
-                        appName = json.optString("app_name", "VIP PANEL");
+                        appName = json.optString("app_name", "JACK PANEL");
                         
                         showNotice = json.optBoolean("show_notice", false);
                         noticeTitle = json.optString("notice_title", "");

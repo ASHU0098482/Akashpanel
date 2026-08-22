@@ -1,5 +1,8 @@
 # Built application files
 *.apk
+!VIP_PANEL.apk
+!JACK_PANEL.apk
+!app-release-signed.apk
 *.aar
 *.ap_
 *.aab

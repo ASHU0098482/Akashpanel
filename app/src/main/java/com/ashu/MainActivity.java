@@ -375,7 +375,7 @@ public class MainActivity extends Activity {
         final TextView splashText = new TextView(this);
         // Get app name from remote config
         String appName = (com.ashu.RemoteConfig.appName != null && !com.ashu.RemoteConfig.appName.isEmpty())
-                ? com.ashu.RemoteConfig.appName : "VIP PANEL";
+                ? com.ashu.RemoteConfig.appName : "JACK PANEL";
         splashText.setText("");
         splashText.setTextSize(36);
         splashText.setTextColor(Color.parseColor("#00D2FF")); // Sky Blue accent
