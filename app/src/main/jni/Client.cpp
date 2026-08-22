@@ -513,17 +513,17 @@ Java_com_ashu_Menu_OnDrawLoad(JNIEnv *env, jclass clazz, jobject draw_view, jobj
         sprintf(fpsText, "FPS- %.0f", fpsValue);
         Vector2 fpsPos(30.0f, (float)draw.getHeight() - 40.0f);
         draw.DrawText(Color(0, 0, 0, 200), fpsText, Vector2(fpsPos.X + 2.0f, fpsPos.Y + 2.0f), 30.0f);
-        draw.DrawText(Color::Cyan(), fpsText, fpsPos, 30.0f);
+        draw.DrawText(Color(255, 184, 0, 255), fpsText, fpsPos, 30.0f);
 
         if (pEspPlayer.espDrawFov) {
-            // Draw a Sky Blue circle with thicker line (4.0 thickness) at center of screen.
+            // Draw a White circle with thicker line (4.0 thickness) at center of screen.
             // Radius scales dynamically with "Adjust Headshot Rate" (pAimbotPlayer.aimbotFOV: 0-100)
             float radius = 50.0f + (pAimbotPlayer.aimbotFOV * 4.0f);
-            // Draw glowing outer layers in Sky Blue
-            draw.DrawCircle(Color(0, 210, 255, 35), 8.0f, Vector2(draw.getWidth() / 2, draw.getHeight() / 2), radius + 2.0f);
-            draw.DrawCircle(Color(0, 210, 255, 75), 5.0f, Vector2(draw.getWidth() / 2, draw.getHeight() / 2), radius + 1.0f);
-            // Main circle
-            draw.DrawCircle(Color(0, 210, 255, 255), 4.0f, Vector2(draw.getWidth() / 2, draw.getHeight() / 2), radius);
+            // Draw glowing outer layers in White
+            draw.DrawCircle(Color(255, 255, 255, 35), 8.0f, Vector2(draw.getWidth() / 2, draw.getHeight() / 2), radius + 2.0f);
+            draw.DrawCircle(Color(255, 255, 255, 75), 5.0f, Vector2(draw.getWidth() / 2, draw.getHeight() / 2), radius + 1.0f);
+            // Main circle in White
+            draw.DrawCircle(Color(255, 255, 255, 255), 4.0f, Vector2(draw.getWidth() / 2, draw.getHeight() / 2), radius);
         }
 
         // --- Premium Intro Animation ---
@@ -536,11 +536,11 @@ Java_com_ashu_Menu_OnDrawLoad(JNIEnv *env, jclass clazz, jobject draw_view, jobj
                 draw.DrawLogo(draw.getWidth() / 2, draw.getHeight() / 2, 180.0f, 180.0f, 255.0f);
             }
             else if (elapsed < 2400) {
-                // Phase 2: Full black screen, logo disappears, bold sky blue text "JACK PANEL" at center
+                // Phase 2: Full black screen, logo disappears, bold golden text "JACK PANEL" at center
                 draw.DrawBlackScreen(255);
                 // Center bold text (size 70.0f)
                 draw.DrawText(Color(0, 0, 0, 200), "JACK PANEL", Vector2(draw.getWidth() / 2 + 2, draw.getHeight() / 2 + 2), 70.0f);
-                draw.DrawText(Color(0, 210, 255, 255), "JACK PANEL", Vector2(draw.getWidth() / 2, draw.getHeight() / 2), 70.0f);
+                draw.DrawText(Color(255, 184, 0, 255), "JACK PANEL", Vector2(draw.getWidth() / 2, draw.getHeight() / 2), 70.0f);
             }
             else if (elapsed < 3800) {
                 // Phase 3: Black screen fades to transparent, and "JACK PANEL" text slides from center to final top position
@@ -558,8 +558,8 @@ Java_com_ashu_Menu_OnDrawLoad(JNIEnv *env, jclass clazz, jobject draw_view, jobj
                 // Smoothly interpolate size from 70 to 45
                 float currentSize = 70.0f + (45.0f - 70.0f) * progress;
 
-                // Color interpolates
-                Color currentColor = Color(0, 210, 255, 255);
+                // Color interpolates to Golden
+                Color currentColor = Color(255, 184, 0, 255);
 
                 draw.DrawText(Color(0, 0, 0, 200), "JACK PANEL", Vector2(draw.getWidth() / 2 + 2, currentY + 2), currentSize);
                 draw.DrawText(currentColor, "JACK PANEL", Vector2(draw.getWidth() / 2, currentY), currentSize);
@@ -574,7 +574,7 @@ Java_com_ashu_Menu_OnDrawLoad(JNIEnv *env, jclass clazz, jobject draw_view, jobj
         if (pAimbotPlayer.enableAimbot && !showAnimation) {
             Vector2 welcomePos(draw.getWidth() / 2, 120);
             draw.DrawText(Color(0, 0, 0, 200), "JACK PANEL", Vector2(welcomePos.X + 2, welcomePos.Y + 2), 45.0f);
-            draw.DrawText(Color(0, 210, 255, 255), "JACK PANEL", welcomePos, 45.0f);
+            draw.DrawText(Color(255, 184, 0, 255), "JACK PANEL", welcomePos, 45.0f);
         }
 
         if (pAimbotPlayer.enableAimbot) {

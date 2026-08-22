@@ -138,7 +138,7 @@ public class Login {
         TextView titleRed = new TextView(context);
         titleRed.setText(firstWord + "  ");
         titleRed.setTextSize(22);
-        titleRed.setTextColor(Color.parseColor("#00D2FF")); // Sky Blue Accent
+        titleRed.setTextColor(Color.parseColor("#FFB800")); // Golden Accent
         titleRed.setTypeface(null, Typeface.BOLD);
 
         TextView titleWhite = new TextView(context);
@@ -234,7 +234,7 @@ public class Login {
                 new Utils(context).FixDP(12)
         );
         GradientDrawable btnBg = new GradientDrawable();
-        btnBg.setColor(Color.parseColor("#0284C7")); // Sky Blue Button
+        btnBg.setColor(Color.parseColor("#F59E0B")); // Golden Button
         btnBg.setCornerRadius(new Utils(context).FixDP(50));
         loginButton.setBackground(btnBg);
 
@@ -252,11 +252,11 @@ public class Login {
 
         loadingBar = new ProgressBar(context);
         loadingBar.setVisibility(View.GONE);
-        loadingBar.getIndeterminateDrawable().setColorFilter(Color.parseColor("#00D2FF"), PorterDuff.Mode.SRC_IN);
+        loadingBar.getIndeterminateDrawable().setColorFilter(Color.parseColor("#FFB800"), PorterDuff.Mode.SRC_IN);
 
         loadingText = new TextView(context);
         loadingText.setText("Verifying License Key...");
-        loadingText.setTextColor(Color.parseColor("#00D2FF"));
+        loadingText.setTextColor(Color.parseColor("#FFB800"));
         loadingText.setTextSize(14);
         loadingText.setPadding(20, 0, 0, 0);
         loadingText.setVisibility(View.GONE);
@@ -355,7 +355,7 @@ public class Login {
         final GradientDrawable cardBg = new GradientDrawable();
         cardBg.setColor(Color.parseColor("#E6141414")); // Lightweight dark translucent
         cardBg.setCornerRadius(new Utils(context).FixDP(14));
-        cardBg.setStroke(new Utils(context).FixDP(1.2f), Color.parseColor("#00D2FF"));
+        cardBg.setStroke(new Utils(context).FixDP(1.2f), Color.parseColor("#FFB800"));
         disclaimerCard.setBackground(cardBg);
 
         LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(
@@ -369,7 +369,7 @@ public class Login {
         // --- 1. Header: 🛡️ DISCLAIMERS ---
         TextView disclaimerTitle = new TextView(context);
         disclaimerTitle.setText("🛡️ DISCLAIMERS :");
-        disclaimerTitle.setTextColor(Color.parseColor("#00D2FF"));
+        disclaimerTitle.setTextColor(Color.parseColor("#FFB800"));
         disclaimerTitle.setTextSize(11.5f);
         disclaimerTitle.setTypeface(Typeface.DEFAULT_BOLD);
         disclaimerTitle.setLetterSpacing(0.03f);
@@ -471,7 +471,7 @@ public class Login {
         specRow1.setGravity(Gravity.CENTER_VERTICAL);
         specRow1.setPadding(0, new Utils(context).FixDP(1), 0, new Utils(context).FixDP(1));
 
-        TextView tvApk = createCompactBadge("📱 APK: " + apkVersion, "#00D2FF");
+        TextView tvApk = createCompactBadge("📱 APK: " + apkVersion, "#FFB800");
         TextView tvGame = createCompactBadge("🎮 FF MAX 64BIT", "#FFFFFF");
         specRow1.addView(tvApk);
         specRow1.addView(tvGame);
@@ -526,13 +526,13 @@ public class Login {
         pulseAnim.start();
 
         // --- 6. Card Animations ---
-        // Dynamic Breathing Neon Glow Border
+        // Dynamic Breathing Golden Glow Border
         android.animation.ValueAnimator borderGlowAnim = android.animation.ValueAnimator.ofObject(
                 new android.animation.ArgbEvaluator(),
-                Color.parseColor("#00D2FF"),
-                Color.parseColor("#0284C7"),
-                Color.parseColor("#7C3AED"),
-                Color.parseColor("#00D2FF")
+                Color.parseColor("#FFD700"),
+                Color.parseColor("#F59E0B"),
+                Color.parseColor("#D97706"),
+                Color.parseColor("#FFD700")
         );
         borderGlowAnim.setDuration(3500);
         borderGlowAnim.setRepeatCount(android.animation.ValueAnimator.INFINITE);
