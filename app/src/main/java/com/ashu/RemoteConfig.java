@@ -12,8 +12,8 @@ public class RemoteConfig {
     // ==========================================
     public static final String CONFIG_URL = "https://raw.githubusercontent.com/ASHU0098482/Akashpanel/main/config.json";
 
-    public static boolean isOnline = false;
-    public static String maintenanceMessage = "APK under maintenance. Contact Akash.";
+    public static boolean isOnline = true;
+    public static String maintenanceMessage = "Mobile Panel is currently active.";
     public static String appName = "Mobile Panel";
 
     public static boolean showNotice = false;
