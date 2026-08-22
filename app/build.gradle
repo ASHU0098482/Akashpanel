@@ -6,8 +6,8 @@ android {
         applicationId "com.akash.panel"
         minSdkVersion 19
         targetSdkVersion 30
-        versionCode 47
-        versionName "47.0"
+        versionCode 1
+        versionName "1.0"
         ndk {
             abiFilters 'armeabi-v7a', 'arm64-v8a'
         }
