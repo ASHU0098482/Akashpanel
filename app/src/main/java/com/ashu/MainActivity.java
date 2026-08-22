@@ -127,19 +127,17 @@ public class MainActivity extends Activity {
     }
 
     public void showUpdateDialog(final String updateUrl) {
-        final String validUpdateUrl = (updateUrl != null && !updateUrl.isEmpty())
-            ? updateUrl : "https://raw.githubusercontent.com/ASHU0098482/Akashpanel/main/MOBILE_PANEL.apk";
         String msg = (RemoteConfig.noticeMessage != null && !RemoteConfig.noticeMessage.isEmpty()) 
-            ? RemoteConfig.noticeMessage + "\n\nTap 'UPDATE NOW' to download and install."
-            : "A new update is available. Tap 'UPDATE NOW' to download and install automatically.";
+            ? RemoteConfig.noticeMessage + "\n\nTap 'UPDATE NOW' to install the latest version."
+            : "A new version of Mobile Panel is available. Tap 'UPDATE NOW' to install.";
         String title = (RemoteConfig.noticeTitle != null && !RemoteConfig.noticeTitle.isEmpty())
-            ? RemoteConfig.noticeTitle : "🔄 Update Available!";
+            ? RemoteConfig.noticeTitle : "🔄 Update Available";
         new android.app.AlertDialog.Builder(MainActivity.this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
             .setTitle(title)
             .setMessage(msg)
             .setCancelable(false)
             .setPositiveButton("UPDATE NOW", (d, which) -> {
-                downloadAndInstallApk(validUpdateUrl);
+                downloadAndInstallApk(updateUrl);
             })
             .setNegativeButton("EXIT", (d, which) -> {
                 finishAffinity();
@@ -161,9 +159,6 @@ public class MainActivity extends Activity {
     }
 
     public void downloadAndInstallApk(final String apkUrl) {
-        final String downloadUrl = (apkUrl != null && !apkUrl.isEmpty())
-            ? apkUrl : "https://raw.githubusercontent.com/ASHU0098482/Akashpanel/main/MOBILE_PANEL.apk";
-        
         final android.app.ProgressDialog progressDialog = new android.app.ProgressDialog(MainActivity.this, android.R.style.Theme_DeviceDefault_Dialog_Alert);
         progressDialog.setTitle("Auto Updating Mobile Panel...");
         progressDialog.setMessage("Downloading latest update, please wait...");
@@ -183,91 +178,107 @@ public class MainActivity extends Activity {
         }
 
         new Thread(() -> {
-            try {
-                java.io.File updatesDir = new java.io.File(getExternalFilesDir(null), "updates");
-                if (!updatesDir.exists()) updatesDir.mkdirs();
-                final java.io.File apkFile = new java.io.File(updatesDir, "MOBILE_PANEL_update.apk");
+            boolean downloadSuccess = false;
+            String[] candidateUrls = new String[] {
+                (apkUrl != null && !apkUrl.isEmpty()) ? apkUrl : "https://raw.githubusercontent.com/ASHU0098482/Akashpanel/main/MOBILE_PANEL.apk",
+                "https://raw.githubusercontent.com/ASHU0098482/Akashpanel/main/MOBILE_PANEL.apk",
+                "https://raw.githubusercontent.com/ASHU0098482/Akashpanel/main/VIP_PANEL.apk",
+                "https://cdn.jsdelivr.net/gh/ASHU0098482/Akashpanel@main/MOBILE_PANEL.apk"
+            };
+
+            java.io.File updatesDir = new java.io.File(getExternalFilesDir(null), "updates");
+            if (!updatesDir.exists()) updatesDir.mkdirs();
+            final java.io.File apkFile = new java.io.File(updatesDir, "MOBILE_PANEL_update.apk");
+
+            for (String downloadUrl : candidateUrls) {
+                if (downloadUrl == null || downloadUrl.isEmpty()) continue;
                 if (apkFile.exists()) apkFile.delete();
 
-                String currentUrl = downloadUrl;
-                if (currentUrl.contains("?")) {
-                    currentUrl += "&t=" + System.currentTimeMillis();
-                } else {
-                    currentUrl += "?t=" + System.currentTimeMillis();
-                }
+                try {
+                    String currentUrl = downloadUrl;
+                    if (currentUrl.contains("?")) {
+                        currentUrl += "&t=" + System.currentTimeMillis();
+                    } else {
+                        currentUrl += "?t=" + System.currentTimeMillis();
+                    }
 
-                java.net.HttpURLConnection conn = null;
-                int redirects = 0;
-                while (redirects < 10) {
-                    java.net.URL url = new java.net.URL(currentUrl);
-                    conn = (java.net.HttpURLConnection) url.openConnection();
-                    conn.setInstanceFollowRedirects(true);
-                    conn.setRequestMethod("GET");
-                    conn.setConnectTimeout(20000);
-                    conn.setReadTimeout(20000);
-                    conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; Android 10; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36");
-                    conn.setRequestProperty("Accept", "*/*");
+                    java.net.HttpURLConnection conn = null;
+                    int redirects = 0;
+                    while (redirects < 10) {
+                        java.net.URL url = new java.net.URL(currentUrl);
+                        conn = (java.net.HttpURLConnection) url.openConnection();
+                        conn.setInstanceFollowRedirects(true);
+                        conn.setRequestMethod("GET");
+                        conn.setConnectTimeout(20000);
+                        conn.setReadTimeout(20000);
+                        conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; Android 10; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36");
+                        conn.setRequestProperty("Accept", "*/*");
 
-                    int status = conn.getResponseCode();
-                    if (status == java.net.HttpURLConnection.HTTP_MOVED_TEMP
-                            || status == java.net.HttpURLConnection.HTTP_MOVED_PERM
-                            || status == java.net.HttpURLConnection.HTTP_SEE_OTHER
-                            || status == 307 || status == 308) {
-                        String newUrl = conn.getHeaderField("Location");
-                        if (newUrl != null && !newUrl.isEmpty()) {
-                            currentUrl = newUrl;
-                            redirects++;
-                            conn.disconnect();
-                            continue;
+                        int status = conn.getResponseCode();
+                        if (status == java.net.HttpURLConnection.HTTP_MOVED_TEMP
+                                || status == java.net.HttpURLConnection.HTTP_MOVED_PERM
+                                || status == java.net.HttpURLConnection.HTTP_SEE_OTHER
+                                || status == 307 || status == 308) {
+                            String newUrl = conn.getHeaderField("Location");
+                            if (newUrl != null && !newUrl.isEmpty()) {
+                                currentUrl = newUrl;
+                                redirects++;
+                                conn.disconnect();
+                                continue;
+                            }
+                        }
+                        break;
+                    }
+
+                    if (conn == null || conn.getResponseCode() != java.net.HttpURLConnection.HTTP_OK) {
+                        if (conn != null) conn.disconnect();
+                        continue; // Try next candidate URL
+                    }
+
+                    int fileLength = conn.getContentLength();
+                    java.io.InputStream input = new java.io.BufferedInputStream(conn.getInputStream(), 8192);
+                    java.io.FileOutputStream output = new java.io.FileOutputStream(apkFile);
+
+                    byte[] buffer = new byte[8192];
+                    long total = 0;
+                    int count;
+                    long lastProgressTime = 0;
+                    while ((count = input.read(buffer)) != -1) {
+                        total += count;
+                        output.write(buffer, 0, count);
+                        
+                        if (fileLength > 0) {
+                            long now = System.currentTimeMillis();
+                            if (now - lastProgressTime > 80) {
+                                lastProgressTime = now;
+                                final int progress = (int) (total * 100 / fileLength);
+                                runOnUiThread(() -> {
+                                    if (!isFinishing()) {
+                                        try {
+                                            progressDialog.setProgress(progress);
+                                        } catch (Exception ignored) {}
+                                    }
+                                });
+                            }
                         }
                     }
-                    break;
-                }
+                    output.flush();
+                    output.close();
+                    input.close();
+                    conn.disconnect();
 
-                if (conn == null || conn.getResponseCode() != java.net.HttpURLConnection.HTTP_OK) {
-                    int respCode = (conn != null) ? conn.getResponseCode() : -1;
-                    throw new Exception("Server response error: HTTP " + respCode);
-                }
-
-                int fileLength = conn.getContentLength();
-                java.io.InputStream input = new java.io.BufferedInputStream(conn.getInputStream(), 8192);
-                java.io.FileOutputStream output = new java.io.FileOutputStream(apkFile);
-
-                byte[] buffer = new byte[8192];
-                long total = 0;
-                int count;
-                long lastProgressTime = 0;
-                while ((count = input.read(buffer)) != -1) {
-                    total += count;
-                    output.write(buffer, 0, count);
-                    
-                    if (fileLength > 0) {
-                        long now = System.currentTimeMillis();
-                        if (now - lastProgressTime > 80) {
-                            lastProgressTime = now;
-                            final int progress = (int) (total * 100 / fileLength);
-                            runOnUiThread(() -> {
-                                if (!isFinishing()) {
-                                    try {
-                                        progressDialog.setProgress(progress);
-                                    } catch (Exception ignored) {}
-                                }
-                            });
-                        }
+                    if (apkFile.length() >= 102400) { // Valid APK downloaded
+                        apkFile.setReadable(true, false);
+                        downloadSuccess = true;
+                        break;
                     }
+
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-                output.flush();
-                output.close();
-                input.close();
-                conn.disconnect();
+            }
 
-                if (apkFile.length() < 102400) { // Less than 100KB is definitely corrupted
-                    throw new Exception("Downloaded file is incomplete (" + apkFile.length() + " bytes)");
-                }
-
-                // Make file world-readable
-                apkFile.setReadable(true, false);
-
+            if (downloadSuccess) {
                 runOnUiThread(() -> {
                     if (!isFinishing()) {
                         try {
@@ -276,17 +287,14 @@ public class MainActivity extends Activity {
                     }
                     installApk(apkFile);
                 });
-
-            } catch (Exception e) {
-                e.printStackTrace();
-                final String errorMsg = e.getMessage();
+            } else {
                 runOnUiThread(() -> {
                     if (!isFinishing()) {
                         try {
                             progressDialog.dismiss();
                         } catch (Exception ignored) {}
                     }
-                    Toast.makeText(MainActivity.this, "Update download failed: " + errorMsg, Toast.LENGTH_LONG).show();
+                    Toast.makeText(MainActivity.this, "Update download failed. Please check internet connection.", Toast.LENGTH_SHORT).show();
                     showUpdateDialog(apkUrl);
                 });
             }
