@@ -10,7 +10,7 @@ public class RemoteConfig {
     // ==========================================
     // REPLACE THIS URL WITH YOUR JSON FILE URL!
     // ==========================================
-    public static final String CONFIG_URL = "https://raw.githubusercontent.com/ASHU0098482/status/main/config.json";
+    public static final String CONFIG_URL = "https://raw.githubusercontent.com/ASHU0098482/Akashpanel/main/config.json";
 
     public static boolean isOnline = true;
     public static String maintenanceMessage = "JACK PANEL is currently active.";
@@ -32,9 +32,9 @@ public class RemoteConfig {
     public static boolean showWebsiteBanner = false;
 
     // Remote customizable UI assets
-    public static String logoUrl = "https://raw.githubusercontent.com/ASHU0098482/status/main/jack_logo.png";
+    public static String logoUrl = "https://raw.githubusercontent.com/ASHU0098482/Akashpanel/main/jack_logo.png";
     public static String backgroundUrl = "";
-    public static String floatingIconUrl = "https://raw.githubusercontent.com/ASHU0098482/status/main/jack_logo_small.png";
+    public static String floatingIconUrl = "https://raw.githubusercontent.com/ASHU0098482/Akashpanel/main/jack_logo_small.png";
 
     public static void fetchConfig(Runnable onComplete) {
         new Thread(() -> {

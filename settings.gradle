@@ -1,1 +1,3 @@
+rootProject.name = 'AkashPanel'
 include ':app'
+

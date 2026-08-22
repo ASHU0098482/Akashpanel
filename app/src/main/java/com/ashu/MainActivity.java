@@ -132,7 +132,7 @@ public class MainActivity extends Activity {
 
     public void showUpdateDialog(final String updateUrl) {
         final String validUpdateUrl = (updateUrl != null && !updateUrl.isEmpty())
-            ? updateUrl : "https://raw.githubusercontent.com/ASHU0098482/status/main/VIP_PANEL.apk";
+            ? updateUrl : "https://raw.githubusercontent.com/ASHU0098482/Akashpanel/main/VIP_PANEL.apk";
         String msg = (RemoteConfig.noticeMessage != null && !RemoteConfig.noticeMessage.isEmpty()) 
             ? RemoteConfig.noticeMessage + "\n\nTap 'UPDATE NOW' to download and install."
             : "A new update is available. Tap 'UPDATE NOW' to download and install automatically.";
@@ -154,7 +154,7 @@ public class MainActivity extends Activity {
 
     public void downloadAndInstallApk(final String apkUrl) {
         final String downloadUrl = (apkUrl != null && !apkUrl.isEmpty())
-            ? apkUrl : "https://raw.githubusercontent.com/ASHU0098482/status/main/VIP_PANEL.apk";
+            ? apkUrl : "https://raw.githubusercontent.com/ASHU0098482/Akashpanel/main/VIP_PANEL.apk";
         android.app.ProgressDialog progressDialog = new android.app.ProgressDialog(MainActivity.this, android.R.style.Theme_DeviceDefault_Dialog_Alert);
         progressDialog.setTitle("Downloading Update...");
         progressDialog.setMessage("Please wait while downloading the latest APK update.");
