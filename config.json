@@ -1,6 +1,6 @@
 {
-  "status": "online",
-  "maintenance_message": "Mobile Panel is currently active.",
+  "status": "maintenance",
+  "maintenance_message": "⚠️ Mobile Panel is currently under maintenance. Please wait or contact Akash.",
   "app_name": "Mobile Panel",
   "show_notice": false,
   "notice_title": "",
