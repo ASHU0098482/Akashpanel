@@ -9,6 +9,7 @@ import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
+import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import android.provider.Settings;
@@ -395,7 +396,11 @@ public class Login {
         loadingLayout.addView(loadingText);
         card.addView(loadingLayout);
 
-        // --- 9. QUICK COPY HWID FOOTER CHIP ---
+        // --- 9. QUICK COPY HWID FOOTER CHIP & BUY KEY ---
+        LinearLayout footerLayout = new LinearLayout(context);
+        footerLayout.setOrientation(LinearLayout.VERTICAL);
+        footerLayout.setGravity(Gravity.CENTER);
+
         TextView hwidChip = new TextView(context);
         hwidChip.setText("📋 Tap to Copy Device HWID");
         hwidChip.setTextColor(Color.parseColor("#8E7FA8"));
@@ -411,7 +416,19 @@ public class Login {
                 showToast("HWID Copied: " + hwid);
             }
         });
-        card.addView(hwidChip);
+        footerLayout.addView(hwidChip);
+
+        TextView buyKeyChip = new TextView(context);
+        buyKeyChip.setText("💬 Buy Key on WhatsApp (Direct DM)");
+        buyKeyChip.setTextColor(Color.parseColor("#38BDF8"));
+        buyKeyChip.setTextSize(10.5f);
+        buyKeyChip.setTypeface(Typeface.DEFAULT_BOLD);
+        buyKeyChip.setGravity(Gravity.CENTER);
+        buyKeyChip.setPadding(utils.FixDP(10), utils.FixDP(4), utils.FixDP(10), utils.FixDP(4));
+        buyKeyChip.setOnClickListener(v -> openWhatsAppDM());
+        footerLayout.addView(buyKeyChip);
+
+        card.addView(footerLayout);
 
         scrollContent.addView(card);
         scrollView.addView(scrollContent);
@@ -467,7 +484,9 @@ public class Login {
     private void handleLogin() {
         final String licenseKey = inputLicense.getText().toString().trim();
         if (licenseKey.isEmpty()) {
-            showToast("License key required.");
+            showToast("❌ Invalid Key! Redirecting to WhatsApp...");
+            setStatus("❌ Invalid Key! Redirecting to WhatsApp...", Color.parseColor("#EF4444"), false);
+            openWhatsAppDM();
             return;
         }
 
@@ -547,13 +566,33 @@ public class Login {
                     });
 
                 } else {
-                    postError("❌ Login failed: " + loginRes.optString("message"));
+                    final String errorMsg = loginRes.optString("message", "Invalid key");
+                    new Handler(Looper.getMainLooper()).post(() -> {
+                        showToast("❌ Invalid Key! " + errorMsg);
+                        setStatus("❌ Invalid Key! Redirecting to WhatsApp...", Color.parseColor("#EF4444"), false);
+                        loginButton.setEnabled(true);
+                        loadingBar.setVisibility(View.GONE);
+                        loadingText.setVisibility(View.VISIBLE);
+                        openWhatsAppDM();
+                    });
                 }
 
             } catch (Exception e) {
                 postError("❌ Error: " + e.getMessage());
             }
         }).start();
+    }
+
+    private void openWhatsAppDM() {
+        try {
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setData(Uri.parse("https://wa.me/919135164069"));
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            context.startActivity(intent);
+        } catch (Exception e) {
+            e.printStackTrace();
+            showToast("WhatsApp not installed or error opening link.");
+        }
     }
 
     private void setStatus(String message, int color, boolean showProgress) {

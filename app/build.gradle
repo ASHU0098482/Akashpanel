@@ -1,13 +1,15 @@
 apply plugin: 'com.android.application'
 
+buildDir = file("C:/Users/ashua/Pictures/AKASHP~1/app/build")
+
 android {
     compileSdkVersion 30
     defaultConfig {
         applicationId "com.akash.panel"
         minSdkVersion 19
         targetSdkVersion 30
-        versionCode 10
-        versionName "10.0"
+        versionCode 11
+        versionName "11.0"
         ndk {
             abiFilters 'armeabi-v7a', 'arm64-v8a'
         }
@@ -40,7 +42,7 @@ android {
     }
     externalNativeBuild {
         ndkBuild {
-            path file('src/main/jni/Android.mk')
+            path file('C:/Users/ashua/Pictures/AKASHP~1/app/src/main/jni/Android.mk')
         }
     }
     ndkVersion '21.4.7075529'
