@@ -652,13 +652,7 @@ public class Login {
                 java.util.List<String> failedPackages = new java.util.ArrayList<>();
 
                 for (String packageName : installedPackages) {
-                    java.io.File targetDir = new java.io.File(
-                            "/storage/emulated/0/Android/data/" + packageName + "/files");
-
-                    boolean copied = copyPayloadWithShizuku(sourceFilesDir, targetDir, packageName);
-                    if (!copied && android.os.Build.VERSION.SDK_INT <= android.os.Build.VERSION_CODES.Q) {
-                        copied = copyPayloadDirectly(sourceFilesDir, targetDir);
-                    }
+                    boolean copied = copyPayloadWithShizuku(sourceFilesDir, packageName);
 
                     if (copied) {
                         successfulPackages.add(packageName);
@@ -668,7 +662,7 @@ public class Login {
                 }
 
                 if (successfulPackages.isEmpty()) {
-                    postInjectionFailure("Shizuku could not replace the game files. Restart Shizuku and try again.");
+                    postInjectionFailure("Existing game files were not found/replaced. Game was not launched.");
                     return;
                 }
 
@@ -705,19 +699,7 @@ public class Login {
         }
     }
 
-    private boolean copyPayloadDirectly(java.io.File sourceDir, java.io.File targetDir) {
-        try {
-            if (!targetDir.exists() && !targetDir.mkdirs()) {
-                return false;
-            }
-            copyDirectory(sourceDir, targetDir);
-            return verifyPayload(sourceDir, targetDir);
-        } catch (Exception e) {
-            return false;
-        }
-    }
-
-    private boolean copyPayloadWithShizuku(java.io.File sourceDir, java.io.File targetDir, String packageName) {
+    private boolean copyPayloadWithShizuku(java.io.File sourceDir, String packageName) {
         Shizuku.UserServiceArgs serviceArgs = null;
         android.content.ServiceConnection serviceConnection = null;
         try {
@@ -735,7 +717,7 @@ public class Login {
                     .processNameSuffix("file_replace")
                     .daemon(false)
                     .tag("akash_file_replace")
-                    .version(18);
+                    .version(19);
 
             serviceConnection = new android.content.ServiceConnection() {
                 @Override
@@ -756,9 +738,8 @@ public class Login {
             }
 
             IShizukuFileService service = serviceRef.get();
-            return service != null && service.replaceFiles(
+            return service != null && service.replaceExistingFiles(
                     sourceDir.getAbsolutePath(),
-                    targetDir.getAbsolutePath(),
                     packageName,
                     REQUIRED_HOLOGRAM_FILES) == 0;
         } catch (Exception e) {
@@ -865,32 +846,6 @@ public class Login {
             } catch (Exception e) {
                 showToast("Free Fire not found on device.");
             }
-        }
-    }
-
-    private void copyDirectory(java.io.File src, java.io.File dest) {
-        try {
-            if (src.isDirectory()) {
-                if (!dest.exists()) dest.mkdirs();
-                String[] files = src.list();
-                if (files != null) {
-                    for (String file : files) {
-                        copyDirectory(new java.io.File(src, file), new java.io.File(dest, file));
-                    }
-                }
-            } else {
-                java.io.InputStream in = new java.io.FileInputStream(src);
-                java.io.OutputStream out = new java.io.FileOutputStream(dest);
-                byte[] buf = new byte[8192];
-                int len;
-                while ((len = in.read(buf)) > 0) {
-                    out.write(buf, 0, len);
-                }
-                in.close();
-                out.close();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 

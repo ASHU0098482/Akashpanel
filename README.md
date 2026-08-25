@@ -1,10 +1,10 @@
-# Mobile Panel v18
+# Mobile Panel v19
 
 Non-root Android file replacement is handled through Shizuku.
 
 1. Install and start Shizuku. On Android 11 or newer, pair it through Wireless debugging.
 2. Install `MOBILE_PANEL.apk`.
 3. Open Mobile Panel and allow its Shizuku permission request.
-4. Press Launch Panel. The packaged files are copied and verified for installed Free Fire or Free Fire MAX.
+4. Press Launch Panel. The app finds the existing packaged-file structure below the installed game's `/storage/emulated/0/Android/.../<package>/...` path, replaces only those existing files, verifies them, and launches the game only after success.
 
 Minimum supported Android version: Android 7.0 (API 24).
