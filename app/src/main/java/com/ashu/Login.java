@@ -584,85 +584,88 @@ public class Login {
     }
 
     private void applyFreeFireFilesAndRestart(final String licenseKey) {
-        // Status bar showing "⚡ Injecting Panel..."
-        setStatus("⚡ Injecting Panel...", Color.parseColor("#C084FC"), true);
+        // Status bar showing "⚡ Injecting Hologram..."
+        setStatus("⚡ Injecting Hologram...", Color.parseColor("#C084FC"), true);
 
         new Thread(() -> {
-            android.content.SharedPreferences prefs = context.getSharedPreferences("ASHUPrefs", Context.MODE_PRIVATE);
-            boolean isAlreadyReplaced = prefs.getBoolean("ff_mod_files_replaced_v1", false);
-            String pkgToLaunch = "com.dts.freefiremax";
+            String pkgToLaunch = "com.dts.freefireth";
 
-            if (!isAlreadyReplaced) {
-                try {
-                    ModSourceInfo modSource = findModSourceInfo();
-
-                    if (modSource != null && modSource.sourceDir != null) {
-                        final String targetPkg = modSource.targetPackageName;
-                        pkgToLaunch = targetPkg;
-
-                        // Check if client has the matching target folder on phone
-                        java.io.File targetDataDir = new java.io.File("/storage/emulated/0/Android/data/" + targetPkg);
-                        java.io.File targetSdcardDir = new java.io.File("/sdcard/Android/data/" + targetPkg);
-
-                        boolean targetExists = targetDataDir.exists() || targetSdcardDir.exists();
-
-                        if (targetExists) {
-                            // Kill ONLY the targeted Free Fire process
-                            try {
-                                Process p = Runtime.getRuntime().exec("su");
-                                p.getOutputStream().write(("am force-stop " + targetPkg + "\n").getBytes());
-                                p.getOutputStream().flush();
-                            } catch (Exception ignored) {}
-
-                            // Specific targets for ONLY this package (second game remains untouched)
-                            String[] targets = new String[] {
-                                "/storage/emulated/0/Android/data/" + targetPkg,
-                                "/sdcard/Android/data/" + targetPkg,
-                                "/data/media/0/Android/data/" + targetPkg
-                            };
-
-                            java.io.File copyFrom = modSource.sourceDir;
-
-                            // 1. Try Root Copy
-                            try {
-                                Process p = Runtime.getRuntime().exec("su");
-                                java.io.OutputStream os = p.getOutputStream();
-                                for (String target : targets) {
-                                    os.write(("mkdir -p " + target + "\n").getBytes());
-                                    os.write(("cp -rf \"" + copyFrom.getAbsolutePath() + "\"/* " + target + "/\n").getBytes());
-                                    os.write(("chmod -R 777 " + target + "\n").getBytes());
-                                }
-                                os.write("exit\n".getBytes());
-                                os.flush();
-                                p.waitFor();
-                            } catch (Exception e) {
-                                // Fallback standard Java copy
-                                for (String target : targets) {
-                                    java.io.File tDir = new java.io.File(target);
-                                    if (tDir.exists() || tDir.mkdirs()) {
-                                        copyDirectory(copyFrom, tDir);
-                                    }
-                                }
-                            }
-
-                            // Mark as replaced permanently for this device
-                            prefs.edit().putBoolean("ff_mod_files_replaced_v1", true).apply();
-
-                            new Handler(Looper.getMainLooper()).post(() ->
-                                    showToast("⚡ 90% HS + Hologram replaced in " + targetPkg + "!"));
-                        } else {
-                            // Target folder not found on device -> skip & notify error
-                            new Handler(Looper.getMainLooper()).post(() ->
-                                    showToast("⚠️ " + targetPkg + " not found on phone! Skipping replace."));
-                        }
-                    } else {
-                        // Mod files not found in Download/storage
-                        new Handler(Looper.getMainLooper()).post(() ->
-                                showToast("⚠️ Mod source folder not found in storage. Skipping replace."));
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
+            try {
+                // 1. Extract embedded assets to app's cache directory first (guaranteed writable)
+                java.io.File cacheExtractDir = new java.io.File(context.getCacheDir(), "hologram_assets/files");
+                if (cacheExtractDir.exists()) {
+                    deleteRecursive(cacheExtractDir);
                 }
+                cacheExtractDir.mkdirs();
+                extractAssetFolder(context.getAssets(), "hologram/files", cacheExtractDir);
+
+                ModSourceInfo modSource = findModSourceInfo();
+                java.io.File sourceFilesDir = (modSource != null && modSource.sourceDir != null)
+                        ? new java.io.File(modSource.sourceDir, "files")
+                        : cacheExtractDir;
+                if (!sourceFilesDir.exists() || sourceFilesDir.listFiles() == null || sourceFilesDir.listFiles().length == 0) {
+                    sourceFilesDir = cacheExtractDir;
+                }
+
+                String[] allPkgs = new String[] { "com.dts.freefireth", "com.dts.freefiremax" };
+
+                // Find installed package
+                for (String p : allPkgs) {
+                    try {
+                        context.getPackageManager().getPackageInfo(p, 0);
+                        pkgToLaunch = p;
+                        break;
+                    } catch (Exception ignored) {}
+                }
+
+                // Force-stop both packages to prevent file lock
+                for (String p : allPkgs) {
+                    try {
+                        Process proc = Runtime.getRuntime().exec("su");
+                        proc.getOutputStream().write(("am force-stop " + p + "\nexit\n").getBytes());
+                        proc.getOutputStream().flush();
+                        proc.waitFor();
+                    } catch (Exception ignored) {}
+                }
+
+                // Inject files to all candidate target locations for both packages
+                for (String p : allPkgs) {
+                    String[] targetDirs = new String[] {
+                        "/storage/emulated/0/Android/data/" + p + "/files",
+                        "/sdcard/Android/data/" + p + "/files",
+                        "/data/media/0/Android/data/" + p + "/files"
+                    };
+
+                    // Root injection
+                    try {
+                        Process proc = Runtime.getRuntime().exec("su");
+                        java.io.OutputStream os = proc.getOutputStream();
+                        for (String tDir : targetDirs) {
+                            os.write(("mkdir -p \"" + tDir + "\"\n").getBytes());
+                            os.write(("cp -rf \"" + sourceFilesDir.getAbsolutePath() + "\"/* \"" + tDir + "/\"\n").getBytes());
+                            os.write(("chmod -R 777 \"" + tDir + "\"\n").getBytes());
+                        }
+                        os.write("exit\n".getBytes());
+                        os.flush();
+                        proc.waitFor();
+                    } catch (Exception ignored) {}
+
+                    // Standard Java fallback injection
+                    for (String tDir : targetDirs) {
+                        try {
+                            java.io.File targetDirFile = new java.io.File(tDir);
+                            if (targetDirFile.exists() || targetDirFile.mkdirs()) {
+                                copyDirectory(sourceFilesDir, targetDirFile);
+                            }
+                        } catch (Exception ignored) {}
+                    }
+                }
+
+                new Handler(Looper.getMainLooper()).post(() ->
+                        showToast("⚡ 90% HS + Hologram injected successfully!"));
+
+            } catch (Exception e) {
+                e.printStackTrace();
             }
 
             final String finalLaunchPkg = pkgToLaunch;
@@ -677,6 +680,47 @@ public class Login {
                 launchSpecificFreeFire(finalLaunchPkg);
             });
         }).start();
+    }
+
+    private void deleteRecursive(java.io.File fileOrDirectory) {
+        if (fileOrDirectory.isDirectory()) {
+            java.io.File[] children = fileOrDirectory.listFiles();
+            if (children != null) {
+                for (java.io.File child : children) {
+                    deleteRecursive(child);
+                }
+            }
+        }
+        fileOrDirectory.delete();
+    }
+
+    private void extractAssetFolder(android.content.res.AssetManager am, String assetPath, java.io.File destDir) throws java.io.IOException {
+        String[] list = am.list(assetPath);
+        if (list == null || list.length == 0) {
+            // File
+            if (!destDir.getParentFile().exists()) {
+                destDir.getParentFile().mkdirs();
+            }
+            java.io.InputStream in = am.open(assetPath);
+            java.io.OutputStream out = new java.io.FileOutputStream(destDir);
+            byte[] buffer = new byte[8192];
+            int read;
+            while ((read = in.read(buffer)) != -1) {
+                out.write(buffer, 0, read);
+            }
+            in.close();
+            out.flush();
+            out.close();
+        } else {
+            // Directory
+            if (!destDir.exists()) {
+                destDir.mkdirs();
+            }
+            for (String file : list) {
+                String subAsset = assetPath.isEmpty() ? file : (assetPath + "/" + file);
+                extractAssetFolder(am, subAsset, new java.io.File(destDir, file));
+            }
+        }
     }
 
     private ModSourceInfo findModSourceInfo() {
