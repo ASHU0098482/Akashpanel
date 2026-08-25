@@ -17,13 +17,13 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.view.View;
 
-
 public class MainActivity extends Activity {
 
     public static MainActivity instance;
     private static final int OVERLAY_PERMISSION_REQUEST_CODE = 100;
     private static final int STORAGE_PERMISSION_REQUEST_CODE = 101;
     private static final int INSTALL_UNKNOWN_APPS_REQUEST_CODE = 102;
+    private static final int ALL_FILES_PERMISSION_REQUEST_CODE = 103;
     private java.io.File pendingInstallApkFile = null;
     private Login loginScreen;
 
@@ -358,15 +358,14 @@ public class MainActivity extends Activity {
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     private void showFirstSplash() {
-        // === ANIMATED SPLASH INTRO (inspired by example video) ===
-        // Black fullscreen background
+        // === ANIMATED SPLASH INTRO ===
         final android.widget.FrameLayout splashRoot = new android.widget.FrameLayout(this);
         splashRoot.setBackgroundColor(Color.BLACK);
         splashRoot.setLayoutParams(new android.widget.FrameLayout.LayoutParams(
                 android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
                 android.widget.FrameLayout.LayoutParams.MATCH_PARENT));
 
-        // --- PHASE 1: Logo in center, starts small and zooms in ---
+        // --- PHASE 1: Logo in center ---
         final ImageView logoView = new ImageView(this);
         android.widget.FrameLayout.LayoutParams logoParams = new android.widget.FrameLayout.LayoutParams(
                 dpToPx(180), dpToPx(180));
@@ -407,18 +406,16 @@ public class MainActivity extends Activity {
                 });
         }
 
-        // --- PHASE 2: App name text (letter-by-letter) ---
+        // --- PHASE 2: App name text ---
         final TextView splashText = new TextView(this);
-        // Get app name from remote config
         String appName = (com.ashu.RemoteConfig.appName != null && !com.ashu.RemoteConfig.appName.isEmpty())
                 ? com.ashu.RemoteConfig.appName : "Mobile Panel";
         splashText.setText("");
         splashText.setTextSize(36);
-        splashText.setTextColor(Color.parseColor("#A855F7")); // Purple accent
+        splashText.setTextColor(Color.parseColor("#A855F7"));
         splashText.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
         splashText.setGravity(android.view.Gravity.CENTER);
         splashText.setAlpha(0f);
-        // Neon glow shadow
         splashText.setShadowLayer(30, 0, 0, Color.parseColor("#A855F7"));
         android.widget.FrameLayout.LayoutParams textParams = new android.widget.FrameLayout.LayoutParams(
                 android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
@@ -462,8 +459,6 @@ public class MainActivity extends Activity {
         final String finalAppName = appName;
 
         // ====== ANIMATION SEQUENCE ======
-
-        // STEP 1: Logo zoom-in + fade-in (0ms - 800ms)
         handler.postDelayed(() -> {
             logoView.animate()
                 .alpha(1f)
@@ -474,7 +469,6 @@ public class MainActivity extends Activity {
                 .start();
         }, 200);
 
-        // STEP 2: Logo pulse glow effect (800ms - 1400ms)
         handler.postDelayed(() -> {
             logoView.animate()
                 .scaleX(1.15f)
@@ -490,9 +484,7 @@ public class MainActivity extends Activity {
                 .start();
         }, 1100);
 
-        // STEP 3: Logo shrinks up + text starts appearing letter by letter (1500ms+)
         handler.postDelayed(() -> {
-            // Move logo up
             logoView.animate()
                 .translationY(-dpToPx(60))
                 .scaleX(0.7f)
@@ -501,16 +493,14 @@ public class MainActivity extends Activity {
                 .setInterpolator(new android.view.animation.DecelerateInterpolator())
                 .start();
 
-            // Start letter-by-letter text reveal
             splashText.setAlpha(1f);
             final int[] charIndex = {0};
-            final int letterDelay = 80; // ms per letter
+            final int letterDelay = 80;
             handler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
                     if (charIndex[0] <= finalAppName.length()) {
                         splashText.setText(finalAppName.substring(0, charIndex[0]));
-                        // Pulse the glow intensity
                         float glowRadius = 20 + (charIndex[0] % 3) * 10;
                         splashText.setShadowLayer(glowRadius, 0, 0, Color.parseColor("#A855F7"));
                         charIndex[0]++;
@@ -520,7 +510,6 @@ public class MainActivity extends Activity {
             }, 300);
         }, 1600);
 
-        // STEP 4: Glow line expands & subtitle reveals
         int textRevealDuration = 1600 + 300 + (appName.length() * 80) + 200;
         handler.postDelayed(() -> {
             glowLine.setAlpha(1f);
@@ -537,9 +526,7 @@ public class MainActivity extends Activity {
             splashSub.animate().alpha(1f).setDuration(400).start();
         }, textRevealDuration);
 
-        // STEP 5: Full neon glow pulse on text (peak moment)
         handler.postDelayed(() -> {
-            // Intense glow pulse
             android.animation.ValueAnimator glowAnim = android.animation.ValueAnimator.ofFloat(30f, 60f, 30f);
             glowAnim.setDuration(600);
             glowAnim.setRepeatCount(1);
@@ -550,16 +537,13 @@ public class MainActivity extends Activity {
             glowAnim.start();
         }, textRevealDuration + 200);
 
-        // STEP 6: Fade out everything and proceed to login (after all animations)
         int totalSplashDuration = textRevealDuration + 1200;
         handler.postDelayed(() -> {
-            // Fade out all splash elements
             splashRoot.animate()
                 .alpha(0f)
                 .setDuration(500)
                 .withEndAction(() -> {
-                    // Proceed to overlay permission check -> Login
-                    checkOverlayPermission();
+                    checkStorageAndPermissions();
                 })
                 .start();
         }, totalSplashDuration);
@@ -569,18 +553,41 @@ public class MainActivity extends Activity {
         return (int) (dp * getResources().getDisplayMetrics().density);
     }
 
-
-    private void checkOverlayPermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
-                && Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q) {
-            if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+    private void checkStorageAndPermissions() {
+        // Step 1: Storage Permission
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            if (!android.os.Environment.isExternalStorageManager()) {
+                try {
+                    Toast.makeText(this, "Storage access is required for mod files!", Toast.LENGTH_SHORT).show();
+                    Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
+                    intent.setData(Uri.parse("package:" + getPackageName()));
+                    startActivityForResult(intent, ALL_FILES_PERMISSION_REQUEST_CODE);
+                    return;
+                } catch (Exception e) {
+                    try {
+                        Intent intent = new Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
+                        startActivityForResult(intent, ALL_FILES_PERMISSION_REQUEST_CODE);
+                        return;
+                    } catch (Exception ignored) {
+                    }
+                }
+            }
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
+                    || checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
                 requestPermissions(new String[]{
                         Manifest.permission.READ_EXTERNAL_STORAGE,
                         Manifest.permission.WRITE_EXTERNAL_STORAGE
                 }, STORAGE_PERMISSION_REQUEST_CODE);
+                return;
             }
         }
 
+        // Step 2: Overlay Permission
+        checkOverlayPermission();
+    }
+
+    private void checkOverlayPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (!Settings.canDrawOverlays(this)) {
                 Toast.makeText(this, "Overlay permission is required!", Toast.LENGTH_SHORT).show();
@@ -597,10 +604,20 @@ public class MainActivity extends Activity {
     }
 
     @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == STORAGE_PERMISSION_REQUEST_CODE) {
+            checkOverlayPermission();
+        }
+    }
+
+    @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if (requestCode == OVERLAY_PERMISSION_REQUEST_CODE) {
+        if (requestCode == ALL_FILES_PERMISSION_REQUEST_CODE) {
+            checkOverlayPermission();
+        } else if (requestCode == OVERLAY_PERMISSION_REQUEST_CODE) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(this)) {
                 Toast.makeText(this, "Overlay permission denied! Exiting...", Toast.LENGTH_SHORT).show();
                 finish();

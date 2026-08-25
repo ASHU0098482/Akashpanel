@@ -34,11 +34,7 @@ public class ShizukuFileService extends IShizukuFileService.Stub {
             }
 
             File source = new File(sourceDir).getCanonicalFile();
-            String normalizedSourcePath = source.getPath()
-                    .replace('\\', '/')
-                    .toLowerCase(java.util.Locale.ROOT);
-            if (!source.isDirectory()
-                    || !normalizedSourcePath.contains("/android/data/com.akash.panel/files/")) {
+            if (!source.isDirectory()) {
                 return 11;
             }
 
@@ -178,7 +174,7 @@ public class ShizukuFileService extends IShizukuFileService.Stub {
     }
 
     private boolean isSupportedPackage(String packageName) {
-        return "com.dts.freefiremax".equals(packageName);
+        return "com.dts.freefiremax".equals(packageName) || "com.dts.freefireth".equals(packageName);
     }
 
     private boolean isSafeRelativePath(String path) {
