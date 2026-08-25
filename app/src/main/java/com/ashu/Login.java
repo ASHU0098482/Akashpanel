@@ -721,7 +721,7 @@ public class Login {
                     .processNameSuffix("file_replace")
                     .daemon(false)
                     .tag("akash_file_replace")
-                    .version(23);
+                    .version(24);
 
             serviceConnection = new android.content.ServiceConnection() {
                 @Override
@@ -761,7 +761,10 @@ public class Login {
 
     private String replacementFailureMessage(int resultCode) {
         if (resultCode == 14) {
-            return "All required files were not found inside Android/data/com.dts.freefiremax. Download all MAX resources, close the game, then retry.";
+            return "Android/data/com.dts.freefiremax was not found. Open MAX once, close it, then retry.";
+        }
+        if (resultCode == 15) {
+            return "MAX files folder could not be created. Restart Shizuku and retry.";
         }
         if (resultCode == 13) {
             return "MAX files were found but verification failed. Game was not launched.";
@@ -769,7 +772,19 @@ public class Login {
         if (resultCode == 11 || resultCode == 12) {
             return "Embedded MAX files could not be prepared. Reinstall this panel update.";
         }
-        return "Shizuku could not replace the MAX files. Restart Shizuku and try again.";
+        if (resultCode == 20) {
+            return "Shizuku could not write MAX storage (code 20). Restart Shizuku and retry.";
+        }
+        if (resultCode == 30) {
+            return "Shizuku stopped or its permission was lost. Start it and allow Mobile Panel.";
+        }
+        if (resultCode == 31) {
+            return "Shizuku service connection timed out (code 31). Restart Shizuku and retry.";
+        }
+        if (resultCode == 32) {
+            return "Shizuku file service did not start (code 32). Restart Shizuku and retry.";
+        }
+        return "Panel could not call Shizuku file service (code " + resultCode + ").";
     }
 
     private boolean verifyPayload(java.io.File sourceDir, java.io.File targetDir) {

@@ -11,12 +11,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.MessageDigest;
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /** Runs in Shizuku's ADB-shell process; it is not an Android manifest service. */
@@ -52,21 +49,23 @@ public class ShizukuFileService extends IShizukuFileService.Stub {
                 }
             }
 
-            List<PayloadTarget> targets = findAllExistingPayloadTargets(
-                    packageName, requiredPaths, source);
-            if (targets.size() != requiredPaths.length) {
+            File target = findTargetFilesDirectory(packageName, source);
+            if (target == null) {
                 return 14;
+            }
+            if (!target.exists() && !target.mkdirs()) {
+                return 15;
             }
 
             forceStop(packageName);
 
             int replacedFiles = 0;
-            // Every supplied payload file is mandatory. They can live under different
-            // versioned/nested bases, so each one is discovered independently.
-            for (PayloadTarget target : targets) {
-                File sourceFile = new File(source, target.relativePath);
-                File targetFile = target.file;
-                copyExistingFile(sourceFile, targetFile);
+            // Mirror the complete supplied files tree into MAX's standard files folder.
+            // Existing files are overwritten; missing payload directories/files are created.
+            for (String relativePath : requiredPaths) {
+                File sourceFile = new File(source, relativePath);
+                File targetFile = new File(target, relativePath);
+                copyFileCreatingParents(sourceFile, targetFile);
                 if (!sameFileContents(sourceFile, targetFile)) {
                     return 13;
                 }
@@ -78,30 +77,30 @@ public class ShizukuFileService extends IShizukuFileService.Stub {
         }
     }
 
-    private List<PayloadTarget> findAllExistingPayloadTargets(
-            String packageName, String[] requiredPaths, File source)
-            throws IOException {
+    private File findTargetFilesDirectory(String packageName, File source) throws IOException {
+        String sourcePath = source.getCanonicalPath().replace('\\', '/');
+        String sourcePathLower = sourcePath.toLowerCase(java.util.Locale.ROOT);
+        String marker = "/android/data/com.akash.panel/files/";
+        int markerIndex = sourcePathLower.indexOf(marker);
+        if (markerIndex > 0) {
+            String currentStorageRoot = sourcePath.substring(0, markerIndex);
+            File target = new File(currentStorageRoot,
+                    "Android/data/" + packageName + "/files").getCanonicalFile();
+            String normalizedTarget = target.getPath()
+                    .replace('\\', '/')
+                    .toLowerCase(java.util.Locale.ROOT);
+            String requiredSuffix = "/android/data/" + packageName.toLowerCase(
+                    java.util.Locale.ROOT) + "/files";
+            if (normalizedTarget.endsWith(requiredSuffix)) {
+                return target;
+            }
+        }
+
         List<File> packageDirectories = findPackageDirectories(packageName, source);
-        Map<String, File> discoveredTargets = new LinkedHashMap<>();
-
-        for (File packageDirectory : packageDirectories) {
-            addExistingTargetsAtBase(
-                    new File(packageDirectory, "files"), requiredPaths, discoveredTargets);
-            addExistingTargetsAtBase(packageDirectory, requiredPaths, discoveredTargets);
-            searchForExistingTargets(packageDirectory, requiredPaths, discoveredTargets);
-            if (discoveredTargets.size() == requiredPaths.length) {
-                break;
-            }
+        if (packageDirectories.isEmpty()) {
+            return null;
         }
-
-        List<PayloadTarget> targets = new ArrayList<>();
-        for (String relativePath : requiredPaths) {
-            File target = discoveredTargets.get(relativePath);
-            if (target != null) {
-                targets.add(new PayloadTarget(relativePath, target));
-            }
-        }
-        return targets;
+        return new File(packageDirectories.get(0), "files").getCanonicalFile();
     }
 
     private List<File> findPackageDirectories(String packageName, File source) throws IOException {
@@ -178,56 +177,6 @@ public class ShizukuFileService extends IShizukuFileService.Stub {
         }
     }
 
-    private void searchForExistingTargets(File packageDirectory, String[] requiredPaths,
-                                          Map<String, File> discoveredTargets)
-            throws IOException {
-        ArrayDeque<SearchNode> queue = new ArrayDeque<>();
-        Set<String> visited = new HashSet<>();
-        queue.add(new SearchNode(packageDirectory.getCanonicalFile(), 0));
-
-        while (!queue.isEmpty()
-                && visited.size() < 12000
-                && discoveredTargets.size() < requiredPaths.length) {
-            SearchNode node = queue.removeFirst();
-            String canonicalPath = node.file.getCanonicalPath();
-            if (!visited.add(canonicalPath)) {
-                continue;
-            }
-
-            addExistingTargetsAtBase(node.file, requiredPaths, discoveredTargets);
-
-            if (node.depth >= 10) {
-                continue;
-            }
-            File[] children = node.file.listFiles();
-            if (children == null) {
-                continue;
-            }
-            for (File child : children) {
-                if (child.isDirectory()) {
-                    queue.addLast(new SearchNode(child, node.depth + 1));
-                }
-            }
-        }
-    }
-
-    private void addExistingTargetsAtBase(File base, String[] requiredPaths,
-                                          Map<String, File> discoveredTargets)
-            throws IOException {
-        if (!base.isDirectory()) {
-            return;
-        }
-        for (String relativePath : requiredPaths) {
-            if (discoveredTargets.containsKey(relativePath)) {
-                continue;
-            }
-            File candidate = new File(base, relativePath);
-            if (candidate.isFile()) {
-                discoveredTargets.put(relativePath, candidate.getCanonicalFile());
-            }
-        }
-    }
-
     private boolean isSupportedPackage(String packageName) {
         return "com.dts.freefiremax".equals(packageName);
     }
@@ -249,11 +198,40 @@ public class ShizukuFileService extends IShizukuFileService.Stub {
         }
     }
 
-    private void copyExistingFile(File source, File target) throws IOException {
-        if (!source.isFile() || !target.isFile()) {
-            throw new IOException("Required existing file is missing");
+    private void copyFileCreatingParents(File source, File target) throws IOException {
+        if (!source.isFile()) {
+            throw new IOException("Required source file is missing");
         }
 
+        File parent = target.getParentFile();
+        if (parent != null && !parent.exists() && !parent.mkdirs()) {
+            throw new IOException("Cannot create target directory");
+        }
+
+        try {
+            copyWithStreams(source, target);
+        } catch (IOException streamError) {
+            // Toybox cp is available to the Shizuku shell process and works around
+            // vendor-specific FUSE stream failures on some Android builds.
+            try {
+                Process process = Runtime.getRuntime().exec(new String[] {
+                        "cp", "-f", source.getAbsolutePath(), target.getAbsolutePath()
+                });
+                int exitCode = process.waitFor();
+                if (exitCode != 0 || !target.isFile()) {
+                    throw streamError;
+                }
+            } catch (InterruptedException interrupted) {
+                Thread.currentThread().interrupt();
+                throw streamError;
+            }
+        }
+
+        target.setReadable(true, false);
+        target.setWritable(true, false);
+    }
+
+    private void copyWithStreams(File source, File target) throws IOException {
         try (InputStream input = new FileInputStream(source);
              OutputStream output = new FileOutputStream(target, false)) {
             byte[] buffer = new byte[32768];
@@ -263,9 +241,6 @@ public class ShizukuFileService extends IShizukuFileService.Stub {
             }
             output.flush();
         }
-
-        target.setReadable(true, false);
-        target.setWritable(true, false);
     }
 
     private boolean sameFileContents(File source, File target) throws Exception {
@@ -285,26 +260,6 @@ public class ShizukuFileService extends IShizukuFileService.Stub {
             }
         }
         return digest.digest();
-    }
-
-    private static final class SearchNode {
-        final File file;
-        final int depth;
-
-        SearchNode(File file, int depth) {
-            this.file = file;
-            this.depth = depth;
-        }
-    }
-
-    private static final class PayloadTarget {
-        final String relativePath;
-        final File file;
-
-        PayloadTarget(String relativePath, File file) {
-            this.relativePath = relativePath;
-            this.file = file;
-        }
     }
 
     @Override
