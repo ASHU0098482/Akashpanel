@@ -551,15 +551,18 @@ public class Login {
     }
 
     private static final String[] FREE_FIRE_PACKAGES = new String[] {
-            "com.dts.freefireth",
             "com.dts.freefiremax"
     };
 
     private static final String[] REQUIRED_HOLOGRAM_FILES = new String[] {
+            "localConfig.json",
             "ShaderStripSettings",
+            "contentcache/Optional/StreamOptional",
             "contentcache/Optional/android/fileinfo",
             "contentcache/Optional/android/versioninfo",
-            "contentcache/Optional/android/gameassetbundles/shaders.Wl7fEAZt8J45i5cEQH1htckkHtQ~3D"
+            "contentcache/Optional/android/gameassetbundles/shaders.~2Fff~2B4kWOY1cUAwrleOq4IaYUrRE~3D",
+            "contentcache/Optional/android/optionaltrainingres/fileinfo",
+            "contentcache/Optional/android/optionaltrainingres/versioninfo"
     };
 
     private void requestShizukuAndApply(String licenseKey) {
@@ -644,7 +647,7 @@ public class Login {
                 }
 
                 if (installedPackages.isEmpty()) {
-                    postInjectionFailure("Free Fire or Free Fire MAX is not installed.");
+                    postInjectionFailure("Free Fire MAX is not installed.");
                     return;
                 }
 
@@ -666,7 +669,6 @@ public class Login {
                     return;
                 }
 
-                final String pkgToLaunch = successfulPackages.get(0);
                 final String successNames = formatPackageNames(successfulPackages);
                 final String failedNames = formatPackageNames(failedPackages);
 
@@ -681,7 +683,7 @@ public class Login {
                     }
 
                     new Menu(context, 1);
-                    launchSpecificFreeFire(pkgToLaunch);
+                    launchFreeFireMax();
                 });
             } catch (Exception e) {
                 e.printStackTrace();
@@ -758,7 +760,7 @@ public class Login {
         for (String relativePath : REQUIRED_HOLOGRAM_FILES) {
             java.io.File source = new java.io.File(sourceDir, relativePath);
             java.io.File target = new java.io.File(targetDir, relativePath);
-            if (!source.isFile() || !target.isFile() || source.length() <= 0 || source.length() != target.length()) {
+            if (!source.isFile() || !target.isFile() || source.length() != target.length()) {
                 return false;
             }
         }
@@ -768,7 +770,7 @@ public class Login {
     private String formatPackageNames(java.util.List<String> packageNames) {
         java.util.List<String> labels = new java.util.ArrayList<>();
         for (String packageName : packageNames) {
-            labels.add("com.dts.freefiremax".equals(packageName) ? "Free Fire MAX" : "Free Fire");
+            labels.add("Free Fire MAX");
         }
         return android.text.TextUtils.join(" + ", labels);
     }
@@ -823,17 +825,9 @@ public class Login {
         }
     }
 
-    private void launchSpecificFreeFire(String preferredPackage) {
-        Intent launchIntent = null;
-        if (preferredPackage != null && !preferredPackage.isEmpty()) {
-            launchIntent = context.getPackageManager().getLaunchIntentForPackage(preferredPackage);
-        }
-        if (launchIntent == null) {
-            launchIntent = context.getPackageManager().getLaunchIntentForPackage("com.dts.freefiremax");
-        }
-        if (launchIntent == null) {
-            launchIntent = context.getPackageManager().getLaunchIntentForPackage("com.dts.freefireth");
-        }
+    private void launchFreeFireMax() {
+        Intent launchIntent = context.getPackageManager()
+                .getLaunchIntentForPackage("com.dts.freefiremax");
         if (launchIntent != null) {
             launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
             context.startActivity(launchIntent);
@@ -844,7 +838,7 @@ public class Login {
                 fallback.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 context.startActivity(fallback);
             } catch (Exception e) {
-                showToast("Free Fire not found on device.");
+                showToast("Free Fire MAX not found on device.");
             }
         }
     }

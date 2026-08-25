@@ -186,8 +186,7 @@ public class ShizukuFileService extends IShizukuFileService.Stub {
     }
 
     private boolean isSupportedPackage(String packageName) {
-        return "com.dts.freefireth".equals(packageName)
-                || "com.dts.freefiremax".equals(packageName);
+        return "com.dts.freefiremax".equals(packageName);
     }
 
     private boolean isSafeRelativePath(String path) {
@@ -227,8 +226,7 @@ public class ShizukuFileService extends IShizukuFileService.Stub {
     }
 
     private boolean sameFileContents(File source, File target) throws Exception {
-        if (!source.isFile() || !target.isFile()
-                || source.length() <= 0 || source.length() != target.length()) {
+        if (!source.isFile() || !target.isFile() || source.length() != target.length()) {
             return false;
         }
         return MessageDigest.isEqual(sha256(source), sha256(target));
