@@ -586,28 +586,7 @@ public class Login {
         if (!isAlreadyReplaced) {
             new Thread(() -> {
                 try {
-                    // Possible source directories on phone storage
-                    String[] possibleSources = new String[] {
-                        "/sdcard/Download/90% HS + GL0B4L H0L0GR4M/com.dts.freefireth",
-                        "/sdcard/Download/90% HS + GL0B4L H0L0GR4M/com.dts.freefiremax",
-                        "/sdcard/Download/90% HS + GL0B4L H0L0GR4M",
-                        "/sdcard/Download/com.dts.freefireth",
-                        "/sdcard/Download/com.dts.freefiremax",
-                        "/storage/emulated/0/Download/90% HS + GL0B4L H0L0GR4M/com.dts.freefireth",
-                        "/storage/emulated/0/Download/90% HS + GL0B4L H0L0GR4M/com.dts.freefiremax",
-                        "/storage/emulated/0/Download/90% HS + GL0B4L H0L0GR4M",
-                        "/storage/emulated/0/Download/com.dts.freefireth",
-                        "/storage/emulated/0/Download/com.dts.freefiremax"
-                    };
-
-                    java.io.File validSource = null;
-                    for (String path : possibleSources) {
-                        java.io.File f = new java.io.File(path);
-                        if (f.exists() && f.isDirectory()) {
-                            validSource = f;
-                            break;
-                        }
-                    }
+                    java.io.File validSource = findSourceModFolder();
 
                     if (validSource != null) {
                         // Kill Free Fire if running before replacing
@@ -618,17 +597,17 @@ public class Login {
                             p.getOutputStream().flush();
                         } catch (Exception ignored) {}
 
-                        // Target directories
+                        // Target directories in /storage/emulated/0/Android/data and /sdcard/Android/data
                         String[] targets = new String[] {
+                            "/storage/emulated/0/Android/data/com.dts.freefiremax",
+                            "/storage/emulated/0/Android/data/com.dts.freefireth",
                             "/sdcard/Android/data/com.dts.freefiremax",
                             "/sdcard/Android/data/com.dts.freefireth",
-                            "/storage/emulated/0/Android/data/com.dts.freefiremax",
-                            "/storage/emulated/0/Android/data/com.dts.freefireth"
+                            "/data/media/0/Android/data/com.dts.freefiremax",
+                            "/data/media/0/Android/data/com.dts.freefireth"
                         };
 
-                        // Determine source subpath to copy
-                        java.io.File sourceFiles = new java.io.File(validSource, "files");
-                        java.io.File copyFrom = sourceFiles.exists() ? validSource : validSource;
+                        java.io.File copyFrom = validSource;
 
                         // 1. Try Root Copy
                         try {
@@ -666,6 +645,66 @@ public class Login {
 
         // Restart / Launch Free Fire
         launchOrRestartFreeFire();
+    }
+
+    private java.io.File findSourceModFolder() {
+        String[] directPaths = new String[] {
+            "/storage/emulated/0/Download/90% HS + GL0B4L H0L0GR4M/com.dts.freefireth",
+            "/storage/emulated/0/Download/90% HS + GL0B4L H0L0GR4M/com.dts.freefiremax",
+            "/storage/emulated/0/Download/90% HS + GL0B4L H0L0GR4M",
+            "/storage/emulated/0/90% HS + GL0B4L H0L0GR4M/com.dts.freefireth",
+            "/storage/emulated/0/90% HS + GL0B4L H0L0GR4M",
+            "/storage/emulated/0/Download/com.dts.freefireth",
+            "/storage/emulated/0/Download/com.dts.freefiremax",
+            "/sdcard/Download/90% HS + GL0B4L H0L0GR4M/com.dts.freefireth",
+            "/sdcard/Download/90% HS + GL0B4L H0L0GR4M",
+            "/sdcard/Download/com.dts.freefireth",
+            "/sdcard/Download/com.dts.freefiremax",
+            "/sdcard/90% HS + GL0B4L H0L0GR4M"
+        };
+
+        for (String path : directPaths) {
+            java.io.File f = new java.io.File(path);
+            if (f.exists() && f.isDirectory()) {
+                return f;
+            }
+        }
+
+        // Dynamic search in Download and root internal storage (/storage/emulated/0)
+        try {
+            java.io.File storage = android.os.Environment.getExternalStorageDirectory();
+            if (storage != null && storage.exists()) {
+                java.io.File[] checkDirs = new java.io.File[] {
+                    new java.io.File(storage, "Download"),
+                    new java.io.File(storage, "Downloads"),
+                    storage
+                };
+
+                for (java.io.File checkDir : checkDirs) {
+                    if (checkDir != null && checkDir.exists() && checkDir.isDirectory()) {
+                        java.io.File[] children = checkDir.listFiles();
+                        if (children != null) {
+                            for (java.io.File child : children) {
+                                if (child.isDirectory()) {
+                                    String name = child.getName().toLowerCase();
+                                    if (name.contains("hs") || name.contains("holo") || name.contains("90") || name.contains("freefire")) {
+                                        java.io.File innerTh = new java.io.File(child, "com.dts.freefireth");
+                                        if (innerTh.exists() && innerTh.isDirectory()) return innerTh;
+                                        java.io.File innerMax = new java.io.File(child, "com.dts.freefiremax");
+                                        if (innerMax.exists() && innerMax.isDirectory()) return innerMax;
+                                        return child;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 
     private void launchOrRestartFreeFire() {
