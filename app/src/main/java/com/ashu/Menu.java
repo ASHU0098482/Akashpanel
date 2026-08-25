@@ -152,7 +152,7 @@ public class Menu {
         final GradientDrawable gradientDrawable_container = new GradientDrawable();
         gradientDrawable_container.setColor(Color.parseColor("#F6100820")); // Ultra Deep Cyber Glass
         gradientDrawable_container.setCornerRadius(utils.FixDP(16));
-        gradientDrawable_container.setStroke(utils.FixDP(1.2f), Color.parseColor("#9333EA")); // Neon Purple Border
+        gradientDrawable_container.setStroke(utils.FixDP(1.2f), Color.parseColor("#1BB0C4")); // Cyan Border
 
         LinearLayout container = new LinearLayout(context);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {

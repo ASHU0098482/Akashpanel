@@ -6,10 +6,10 @@ android {
     compileSdkVersion 30
     defaultConfig {
         applicationId "com.akash.panel"
-        minSdkVersion 19
+        minSdkVersion 24
         targetSdkVersion 30
-        versionCode 16
-        versionName "16.0"
+        versionCode 18
+        versionName "18.0"
         ndk {
             abiFilters 'armeabi-v7a', 'arm64-v8a'
         }
@@ -66,5 +66,9 @@ dependencies {
 
     // ✅ AndroidX Core for FileProvider (in-app update install)
     implementation 'androidx.core:core:1.6.0'
+
+    // Shizuku gives the panel ADB-shell access on non-root Android devices.
+    implementation 'dev.rikka.shizuku:api:13.1.5'
+    implementation 'dev.rikka.shizuku:provider:13.1.5'
 
 }

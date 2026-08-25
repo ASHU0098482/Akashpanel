@@ -25,17 +25,12 @@ public class MainActivity extends Activity {
     private static final int STORAGE_PERMISSION_REQUEST_CODE = 101;
     private static final int INSTALL_UNKNOWN_APPS_REQUEST_CODE = 102;
     private java.io.File pendingInstallApkFile = null;
+    private Login loginScreen;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         instance = this;
-
-        try {
-            Runtime.getRuntime().exec("su");
-        } catch (Exception e) {
-            // Root not found - handled silently
-        }
 
         ActionBar actionBar = getActionBar();
         if (actionBar != null) {
@@ -47,6 +42,10 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onDestroy() {
+        if (loginScreen != null) {
+            loginScreen.destroy();
+            loginScreen = null;
+        }
         super.onDestroy();
     }
 
@@ -572,14 +571,17 @@ public class MainActivity extends Activity {
 
 
     private void checkOverlayPermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
+                && Build.VERSION.SDK_INT <= Build.VERSION_CODES.Q) {
             if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
                 requestPermissions(new String[]{
                         Manifest.permission.READ_EXTERNAL_STORAGE,
                         Manifest.permission.WRITE_EXTERNAL_STORAGE
                 }, STORAGE_PERMISSION_REQUEST_CODE);
             }
+        }
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (!Settings.canDrawOverlays(this)) {
                 Toast.makeText(this, "Overlay permission is required!", Toast.LENGTH_SHORT).show();
                 Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + getPackageName()));
@@ -591,7 +593,7 @@ public class MainActivity extends Activity {
     }
 
     private void startLogin() {
-        new Login(this);
+        loginScreen = new Login(this);
     }
 
     @Override

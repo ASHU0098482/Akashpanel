@@ -5,6 +5,7 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.Typeface;
@@ -23,7 +24,6 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.ScrollView;
-import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -33,6 +33,8 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+
+import rikka.shizuku.Shizuku;
 
 public class Login {
 
@@ -49,10 +51,18 @@ public class Login {
     private ProgressBar loadingBar;
     private TextView loadingText;
 
-    private LinearLayout settingsLayout;
-    private Switch suToggle;
-    private TextView suLabel;
-    private boolean isSettingsVisible = false;
+    private static final int SHIZUKU_PERMISSION_REQUEST_CODE = 103;
+    private String pendingShizukuLicenseKey;
+
+    private final Shizuku.OnRequestPermissionResultListener shizukuPermissionListener =
+            this::onShizukuPermissionResult;
+
+    private final Shizuku.OnBinderReceivedListener shizukuBinderReceivedListener = () -> {
+        final String pendingKey = pendingShizukuLicenseKey;
+        if (pendingKey != null && !pendingKey.isEmpty()) {
+            new Handler(Looper.getMainLooper()).post(() -> requestShizukuAndApply(pendingKey));
+        }
+    };
 
     private static final String OWNER_ID = "8Z9qRQ2zph";
     private static final String APP_NAME = "vip panel";
@@ -68,7 +78,14 @@ public class Login {
         Login.globalContext = context;
         this.context = context;
         this.utils = new Utils(context);
+        Shizuku.addRequestPermissionResultListener(shizukuPermissionListener);
+        Shizuku.addBinderReceivedListener(shizukuBinderReceivedListener);
         Init();
+    }
+
+    public void destroy() {
+        Shizuku.removeRequestPermissionResultListener(shizukuPermissionListener);
+        Shizuku.removeBinderReceivedListener(shizukuBinderReceivedListener);
     }
 
     private void Init() {
@@ -244,47 +261,7 @@ public class Login {
         statusRow.addView(chip3);
         card.addView(statusRow);
 
-        // --- 5. ROOT BYPASS TOGGLE (Collapsible) ---
-        settingsLayout = new LinearLayout(context);
-        settingsLayout.setOrientation(LinearLayout.VERTICAL);
-        settingsLayout.setVisibility(View.GONE);
-
-        LinearLayout suRow = new LinearLayout(context);
-        suRow.setOrientation(LinearLayout.HORIZONTAL);
-        suRow.setGravity(Gravity.CENTER_VERTICAL);
-        suRow.setPadding(utils.FixDP(8), utils.FixDP(4), utils.FixDP(8), utils.FixDP(4));
-
-        suLabel = new TextView(context);
-        suLabel.setText("ENABLE ROOT BYPASS");
-        suLabel.setTypeface(Typeface.DEFAULT_BOLD);
-        suLabel.setTextSize(13);
-        suLabel.setTextColor(Color.WHITE);
-        suLabel.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
-
-        suToggle = new Switch(context);
-        suToggle.setChecked(isSuRenamed());
-        suToggle.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            String from = isChecked ? "/system/xbin/su" : "/system/xbin/su1";
-            String to = isChecked ? "/system/xbin/su1" : "/system/xbin/su";
-            try {
-                Process process = Runtime.getRuntime().exec(isChecked ? "su" : "su1");
-                process.getOutputStream().write(("mount -o remount,rw /system\n").getBytes());
-                process.getOutputStream().write(("mv " + from + " " + to + "\n").getBytes());
-                process.getOutputStream().write("exit\n".getBytes());
-                process.getOutputStream().flush();
-                process.waitFor();
-                showToast("BYPASS ROOT " + (isChecked ? "SUCCESSFUL" : "DISABLED"));
-            } catch (Exception e) {
-                showToast("ROOT FAILED: " + e.getMessage());
-            }
-        });
-
-        suRow.addView(suLabel);
-        suRow.addView(suToggle);
-        settingsLayout.addView(suRow);
-        card.addView(settingsLayout);
-
-        // --- 6. HIGH-TECH LICENSE INPUT CONTAINER ---
+        // --- 5. HIGH-TECH LICENSE INPUT CONTAINER ---
         LinearLayout inputContainer = new LinearLayout(context);
         inputContainer.setOrientation(LinearLayout.HORIZONTAL);
         inputContainer.setGravity(Gravity.CENTER_VERTICAL);
@@ -540,7 +517,7 @@ public class Login {
                     new Handler(Looper.getMainLooper()).post(() -> {
                         inputLicense.setVisibility(View.GONE);
                         loginButton.setVisibility(View.GONE);
-                        applyFreeFireFilesAndRestart(licenseKey);
+                        requestShizukuAndApply(licenseKey);
                     });
 
                 } else {
@@ -573,113 +550,255 @@ public class Login {
         }
     }
 
-    private static class ModSourceInfo {
-        final java.io.File sourceDir;
-        final String targetPackageName; // e.g. "com.dts.freefireth" or "com.dts.freefiremax"
+    private static final String[] FREE_FIRE_PACKAGES = new String[] {
+            "com.dts.freefireth",
+            "com.dts.freefiremax"
+    };
 
-        ModSourceInfo(java.io.File sourceDir, String targetPackageName) {
-            this.sourceDir = sourceDir;
-            this.targetPackageName = targetPackageName;
+    private static final String[] REQUIRED_HOLOGRAM_FILES = new String[] {
+            "ShaderStripSettings",
+            "contentcache/Optional/android/fileinfo",
+            "contentcache/Optional/android/versioninfo",
+            "contentcache/Optional/android/gameassetbundles/shaders.Wl7fEAZt8J45i5cEQH1htckkHtQ~3D"
+    };
+
+    private void requestShizukuAndApply(String licenseKey) {
+        pendingShizukuLicenseKey = licenseKey;
+
+        try {
+            if (!Shizuku.pingBinder()) {
+                postInjectionFailure("Start Shizuku first, then return to Mobile Panel.");
+                return;
+            }
+
+            if (Shizuku.isPreV11()) {
+                pendingShizukuLicenseKey = null;
+                postInjectionFailure("Please update the Shizuku app.");
+                return;
+            }
+
+            if (Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED) {
+                pendingShizukuLicenseKey = null;
+                applyFreeFireFilesAndRestart(licenseKey);
+                return;
+            }
+
+            if (Shizuku.shouldShowRequestPermissionRationale()) {
+                pendingShizukuLicenseKey = null;
+                postInjectionFailure("Shizuku permission was denied. Allow Mobile Panel in Shizuku.");
+                return;
+            }
+
+            setStatus("🔐 Allow Mobile Panel in Shizuku...", Color.parseColor("#38BDF8"), true);
+            Shizuku.requestPermission(SHIZUKU_PERMISSION_REQUEST_CODE);
+        } catch (Exception e) {
+            postInjectionFailure("Shizuku is unavailable. Start it and try again.");
         }
     }
 
+    private void onShizukuPermissionResult(int requestCode, int grantResult) {
+        if (requestCode != SHIZUKU_PERMISSION_REQUEST_CODE) {
+            return;
+        }
+
+        final String licenseKey = pendingShizukuLicenseKey;
+        pendingShizukuLicenseKey = null;
+        new Handler(Looper.getMainLooper()).post(() -> {
+            if (grantResult == PackageManager.PERMISSION_GRANTED
+                    && licenseKey != null && !licenseKey.isEmpty()) {
+                applyFreeFireFilesAndRestart(licenseKey);
+            } else {
+                postInjectionFailure("Shizuku permission is required for non-root file replacement.");
+            }
+        });
+    }
+
     private void applyFreeFireFilesAndRestart(final String licenseKey) {
-        // Status bar showing "⚡ Injecting Hologram..."
         setStatus("⚡ Injecting Hologram...", Color.parseColor("#C084FC"), true);
 
         new Thread(() -> {
-            String pkgToLaunch = "com.dts.freefireth";
-
             try {
-                // 1. Extract embedded assets to app's cache directory first (guaranteed writable)
-                java.io.File cacheExtractDir = new java.io.File(context.getCacheDir(), "hologram_assets/files");
-                if (cacheExtractDir.exists()) {
-                    deleteRecursive(cacheExtractDir);
-                }
-                cacheExtractDir.mkdirs();
-                extractAssetFolder(context.getAssets(), "hologram/files", cacheExtractDir);
-
-                ModSourceInfo modSource = findModSourceInfo();
-                java.io.File sourceFilesDir = (modSource != null && modSource.sourceDir != null)
-                        ? new java.io.File(modSource.sourceDir, "files")
-                        : cacheExtractDir;
-                if (!sourceFilesDir.exists() || sourceFilesDir.listFiles() == null || sourceFilesDir.listFiles().length == 0) {
-                    sourceFilesDir = cacheExtractDir;
+                java.io.File externalFilesDir = context.getExternalFilesDir(null);
+                if (externalFilesDir == null) {
+                    throw new java.io.IOException("Shared staging storage is unavailable");
                 }
 
-                String[] allPkgs = new String[] { "com.dts.freefireth", "com.dts.freefiremax" };
+                java.io.File sourceFilesDir = new java.io.File(externalFilesDir, "hologram_staging/files");
+                if (sourceFilesDir.exists()) {
+                    deleteRecursive(sourceFilesDir);
+                }
+                if (!sourceFilesDir.mkdirs() && !sourceFilesDir.isDirectory()) {
+                    throw new java.io.IOException("Unable to prepare embedded files");
+                }
+                extractAssetFolder(context.getAssets(), "hologram/files", sourceFilesDir);
 
-                // Find installed package
-                for (String p : allPkgs) {
-                    try {
-                        context.getPackageManager().getPackageInfo(p, 0);
-                        pkgToLaunch = p;
-                        break;
-                    } catch (Exception ignored) {}
+                if (!verifyPayload(sourceFilesDir, sourceFilesDir)) {
+                    throw new java.io.IOException("Embedded hologram payload is incomplete");
                 }
 
-                // Force-stop both packages to prevent file lock
-                for (String p : allPkgs) {
-                    try {
-                        Process proc = Runtime.getRuntime().exec("su");
-                        proc.getOutputStream().write(("am force-stop " + p + "\nexit\n").getBytes());
-                        proc.getOutputStream().flush();
-                        proc.waitFor();
-                    } catch (Exception ignored) {}
-                }
-
-                // Inject files to all candidate target locations for both packages
-                for (String p : allPkgs) {
-                    String[] targetDirs = new String[] {
-                        "/storage/emulated/0/Android/data/" + p + "/files",
-                        "/sdcard/Android/data/" + p + "/files",
-                        "/data/media/0/Android/data/" + p + "/files"
-                    };
-
-                    // Root injection
-                    try {
-                        Process proc = Runtime.getRuntime().exec("su");
-                        java.io.OutputStream os = proc.getOutputStream();
-                        for (String tDir : targetDirs) {
-                            os.write(("mkdir -p \"" + tDir + "\"\n").getBytes());
-                            os.write(("cp -rf \"" + sourceFilesDir.getAbsolutePath() + "\"/* \"" + tDir + "/\"\n").getBytes());
-                            os.write(("chmod -R 777 \"" + tDir + "\"\n").getBytes());
-                        }
-                        os.write("exit\n".getBytes());
-                        os.flush();
-                        proc.waitFor();
-                    } catch (Exception ignored) {}
-
-                    // Standard Java fallback injection
-                    for (String tDir : targetDirs) {
-                        try {
-                            java.io.File targetDirFile = new java.io.File(tDir);
-                            if (targetDirFile.exists() || targetDirFile.mkdirs()) {
-                                copyDirectory(sourceFilesDir, targetDirFile);
-                            }
-                        } catch (Exception ignored) {}
+                java.util.List<String> installedPackages = new java.util.ArrayList<>();
+                for (String packageName : FREE_FIRE_PACKAGES) {
+                    if (isPackageInstalled(packageName)) {
+                        installedPackages.add(packageName);
                     }
                 }
 
-                new Handler(Looper.getMainLooper()).post(() ->
-                        showToast("⚡ 90% HS + Hologram injected successfully!"));
+                if (installedPackages.isEmpty()) {
+                    postInjectionFailure("Free Fire or Free Fire MAX is not installed.");
+                    return;
+                }
 
+                java.util.List<String> successfulPackages = new java.util.ArrayList<>();
+                java.util.List<String> failedPackages = new java.util.ArrayList<>();
+
+                for (String packageName : installedPackages) {
+                    java.io.File targetDir = new java.io.File(
+                            "/storage/emulated/0/Android/data/" + packageName + "/files");
+
+                    boolean copied = copyPayloadWithShizuku(sourceFilesDir, targetDir, packageName);
+                    if (!copied && android.os.Build.VERSION.SDK_INT <= android.os.Build.VERSION_CODES.Q) {
+                        copied = copyPayloadDirectly(sourceFilesDir, targetDir);
+                    }
+
+                    if (copied) {
+                        successfulPackages.add(packageName);
+                    } else {
+                        failedPackages.add(packageName);
+                    }
+                }
+
+                if (successfulPackages.isEmpty()) {
+                    postInjectionFailure("Shizuku could not replace the game files. Restart Shizuku and try again.");
+                    return;
+                }
+
+                final String pkgToLaunch = successfulPackages.get(0);
+                final String successNames = formatPackageNames(successfulPackages);
+                final String failedNames = formatPackageNames(failedPackages);
+
+                new Handler(Looper.getMainLooper()).post(() -> {
+                    if (failedPackages.isEmpty()) {
+                        setStatus("✅ Installed for " + successNames, Color.parseColor("#22C55E"), false);
+                        showToast("✅ Hologram files verified for " + successNames);
+                    } else {
+                        setStatus("⚠️ Installed for " + successNames + "; failed for " + failedNames,
+                                Color.parseColor("#F59E0B"), false);
+                        showToast("⚠️ Shizuku replacement failed for " + failedNames);
+                    }
+
+                    new Menu(context, 1);
+                    launchSpecificFreeFire(pkgToLaunch);
+                });
             } catch (Exception e) {
                 e.printStackTrace();
+                postInjectionFailure("Injection failed: " + e.getMessage());
+            }
+        }).start();
+    }
+
+    private boolean isPackageInstalled(String packageName) {
+        try {
+            context.getPackageManager().getPackageInfo(packageName, 0);
+            return true;
+        } catch (Exception ignored) {
+            return false;
+        }
+    }
+
+    private boolean copyPayloadDirectly(java.io.File sourceDir, java.io.File targetDir) {
+        try {
+            if (!targetDir.exists() && !targetDir.mkdirs()) {
+                return false;
+            }
+            copyDirectory(sourceDir, targetDir);
+            return verifyPayload(sourceDir, targetDir);
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private boolean copyPayloadWithShizuku(java.io.File sourceDir, java.io.File targetDir, String packageName) {
+        Shizuku.UserServiceArgs serviceArgs = null;
+        android.content.ServiceConnection serviceConnection = null;
+        try {
+            if (!Shizuku.pingBinder()
+                    || Shizuku.checkSelfPermission() != PackageManager.PERMISSION_GRANTED) {
+                return false;
             }
 
-            final String finalLaunchPkg = pkgToLaunch;
-            // After injection completes -> launch game and open Menu
-            new Handler(Looper.getMainLooper()).post(() -> {
-                setStatus("Welcome " + licenseKey + " 👑", Color.WHITE, false);
-                showToast("Welcome " + licenseKey + " 👑");
-                new Menu(context, 1);
-                isSettingsVisible = true;
-                settingsLayout.setVisibility(View.VISIBLE);
+            java.util.concurrent.CountDownLatch connected = new java.util.concurrent.CountDownLatch(1);
+            java.util.concurrent.atomic.AtomicReference<IShizukuFileService> serviceRef =
+                    new java.util.concurrent.atomic.AtomicReference<>();
 
-                launchSpecificFreeFire(finalLaunchPkg);
-            });
-        }).start();
+            serviceArgs = new Shizuku.UserServiceArgs(
+                    new android.content.ComponentName(context, ShizukuFileService.class))
+                    .processNameSuffix("file_replace")
+                    .daemon(false)
+                    .tag("akash_file_replace")
+                    .version(18);
+
+            serviceConnection = new android.content.ServiceConnection() {
+                @Override
+                public void onServiceConnected(android.content.ComponentName name, android.os.IBinder binder) {
+                    serviceRef.set(IShizukuFileService.Stub.asInterface(binder));
+                    connected.countDown();
+                }
+
+                @Override
+                public void onServiceDisconnected(android.content.ComponentName name) {
+                    connected.countDown();
+                }
+            };
+
+            Shizuku.bindUserService(serviceArgs, serviceConnection);
+            if (!connected.await(15, java.util.concurrent.TimeUnit.SECONDS)) {
+                return false;
+            }
+
+            IShizukuFileService service = serviceRef.get();
+            return service != null && service.replaceFiles(
+                    sourceDir.getAbsolutePath(),
+                    targetDir.getAbsolutePath(),
+                    packageName,
+                    REQUIRED_HOLOGRAM_FILES) == 0;
+        } catch (Exception e) {
+            return false;
+        } finally {
+            if (serviceArgs != null && serviceConnection != null) {
+                try {
+                    Shizuku.unbindUserService(serviceArgs, serviceConnection, true);
+                } catch (Exception ignored) {
+                }
+            }
+        }
+    }
+
+    private boolean verifyPayload(java.io.File sourceDir, java.io.File targetDir) {
+        for (String relativePath : REQUIRED_HOLOGRAM_FILES) {
+            java.io.File source = new java.io.File(sourceDir, relativePath);
+            java.io.File target = new java.io.File(targetDir, relativePath);
+            if (!source.isFile() || !target.isFile() || source.length() <= 0 || source.length() != target.length()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private String formatPackageNames(java.util.List<String> packageNames) {
+        java.util.List<String> labels = new java.util.ArrayList<>();
+        for (String packageName : packageNames) {
+            labels.add("com.dts.freefiremax".equals(packageName) ? "Free Fire MAX" : "Free Fire");
+        }
+        return android.text.TextUtils.join(" + ", labels);
+    }
+
+    private void postInjectionFailure(String message) {
+        new Handler(Looper.getMainLooper()).post(() -> {
+            setStatus("❌ " + message, Color.parseColor("#EF4444"), false);
+            showToast("❌ " + message);
+            loginButton.setEnabled(true);
+            loginButton.setVisibility(View.VISIBLE);
+        });
     }
 
     private void deleteRecursive(java.io.File fileOrDirectory) {
@@ -721,75 +840,6 @@ public class Login {
                 extractAssetFolder(am, subAsset, new java.io.File(destDir, file));
             }
         }
-    }
-
-    private ModSourceInfo findModSourceInfo() {
-        String[] possibleRoots = new String[] {
-            "/storage/emulated/0/Download/90% HS + GL0B4L H0L0GR4M",
-            "/storage/emulated/0/90% HS + GL0B4L H0L0GR4M",
-            "/storage/emulated/0/Download",
-            "/sdcard/Download/90% HS + GL0B4L H0L0GR4M",
-            "/sdcard/90% HS + GL0B4L H0L0GR4M",
-            "/sdcard/Download",
-            "/storage/emulated/0"
-        };
-
-        for (String rootPath : possibleRoots) {
-            java.io.File root = new java.io.File(rootPath);
-            if (!root.exists() || !root.isDirectory()) continue;
-
-            // Check if com.dts.freefireth is inside
-            java.io.File thDir = new java.io.File(root, "com.dts.freefireth");
-            if (thDir.exists() && thDir.isDirectory()) {
-                return new ModSourceInfo(thDir, "com.dts.freefireth");
-            }
-
-            // Check if com.dts.freefiremax is inside
-            java.io.File maxDir = new java.io.File(root, "com.dts.freefiremax");
-            if (maxDir.exists() && maxDir.isDirectory()) {
-                return new ModSourceInfo(maxDir, "com.dts.freefiremax");
-            }
-
-            // If root itself is com.dts.freefireth or com.dts.freefiremax
-            if (root.getName().equals("com.dts.freefireth")) {
-                return new ModSourceInfo(root, "com.dts.freefireth");
-            }
-            if (root.getName().equals("com.dts.freefiremax")) {
-                return new ModSourceInfo(root, "com.dts.freefiremax");
-            }
-        }
-
-        // Dynamic search in subfolders
-        try {
-            java.io.File storage = android.os.Environment.getExternalStorageDirectory();
-            if (storage != null && storage.exists()) {
-                java.io.File[] searchDirs = new java.io.File[] {
-                    new java.io.File(storage, "Download"),
-                    new java.io.File(storage, "Downloads"),
-                    storage
-                };
-
-                for (java.io.File dir : searchDirs) {
-                    if (dir != null && dir.exists() && dir.isDirectory()) {
-                        java.io.File[] list = dir.listFiles();
-                        if (list != null) {
-                            for (java.io.File f : list) {
-                                if (f.isDirectory()) {
-                                    java.io.File th = new java.io.File(f, "com.dts.freefireth");
-                                    if (th.exists() && th.isDirectory()) return new ModSourceInfo(th, "com.dts.freefireth");
-                                    java.io.File max = new java.io.File(f, "com.dts.freefiremax");
-                                    if (max.exists() && max.isDirectory()) return new ModSourceInfo(max, "com.dts.freefiremax");
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return null;
     }
 
     private void launchSpecificFreeFire(String preferredPackage) {
@@ -897,10 +947,6 @@ public class Login {
         }
         String combined = rawHwid + "-mobile-panel-hwid-secure";
         return combined.substring(0, Math.max(20, combined.length()));
-    }
-
-    private boolean isSuRenamed() {
-        return !new java.io.File("/system/xbin/su").exists();
     }
 
     private void showNoticeIfAvailable() {
