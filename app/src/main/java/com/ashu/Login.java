@@ -558,9 +558,7 @@ public class Login {
             "contentcache/Optional/StreamOptional",
             "contentcache/Optional/android/fileinfo",
             "contentcache/Optional/android/versioninfo",
-            "contentcache/Optional/android/gameassetbundles/shaders.~2Fff~2B4kWOY1cUAwrleOq4IaYUrRE~3D",
-            "contentcache/Optional/android/optionaltrainingres/fileinfo",
-            "contentcache/Optional/android/optionaltrainingres/versioninfo"
+            "contentcache/Optional/android/gameassetbundles/shaders.~2Fff~2B4kWOY1cUAwrleOq4IaYUrRE~3D"
     };
 
     private void startInjectionProcess(String licenseKey) {
@@ -678,7 +676,7 @@ public class Login {
                 }
 
                 new Handler(Looper.getMainLooper()).post(() -> {
-                    setStatus("✅ 8/8 real MAX files verified", Color.parseColor("#22C55E"), false);
+                    setStatus("✅ 6/6 real MAX files verified", Color.parseColor("#22C55E"), false);
                     showToast("✅ Replaced and verified in Android/data/com.dts.freefiremax/files");
 
                     new Menu(context, 1);
@@ -821,7 +819,7 @@ public class Login {
                     .processNameSuffix("file_replace")
                     .daemon(false)
                     .tag("akash_file_replace")
-                    .version(28);
+                    .version(29);
 
             serviceConnection = new android.content.ServiceConnection() {
                 @Override
