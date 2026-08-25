@@ -14,7 +14,9 @@ import java.security.MessageDigest;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /** Runs in Shizuku's ADB-shell process; it is not an Android manifest service. */
@@ -50,65 +52,56 @@ public class ShizukuFileService extends IShizukuFileService.Stub {
                 }
             }
 
-            File target = findBestExistingPayloadBase(packageName, requiredPaths, source);
-            if (target == null) {
+            List<PayloadTarget> targets = findAllExistingPayloadTargets(
+                    packageName, requiredPaths, source);
+            if (targets.size() != requiredPaths.length) {
                 return 14;
             }
 
             forceStop(packageName);
 
             int replacedFiles = 0;
-            // Some MAX versions do not create every optional/training file. Replace and
-            // verify every payload file that exists in the best matching data folder.
-            for (String relativePath : requiredPaths) {
-                File sourceFile = new File(source, relativePath);
-                File targetFile = new File(target, relativePath);
-                if (!targetFile.isFile()) {
-                    continue;
-                }
+            // Every supplied payload file is mandatory. They can live under different
+            // versioned/nested bases, so each one is discovered independently.
+            for (PayloadTarget target : targets) {
+                File sourceFile = new File(source, target.relativePath);
+                File targetFile = target.file;
                 copyExistingFile(sourceFile, targetFile);
                 if (!sameFileContents(sourceFile, targetFile)) {
                     return 13;
                 }
                 replacedFiles++;
             }
-            return replacedFiles > 0 ? 0 : 14;
+            return replacedFiles == requiredPaths.length ? 0 : 14;
         } catch (Exception e) {
             return 20;
         }
     }
 
-    private File findBestExistingPayloadBase(String packageName, String[] requiredPaths, File source)
+    private List<PayloadTarget> findAllExistingPayloadTargets(
+            String packageName, String[] requiredPaths, File source)
             throws IOException {
         List<File> packageDirectories = findPackageDirectories(packageName, source);
-        File bestBase = null;
-        int bestCount = 0;
+        Map<String, File> discoveredTargets = new LinkedHashMap<>();
 
         for (File packageDirectory : packageDirectories) {
-            File standardFiles = new File(packageDirectory, "files");
-            int standardCount = countExistingPaths(standardFiles, requiredPaths);
-            if (standardCount > bestCount) {
-                bestBase = standardFiles.getCanonicalFile();
-                bestCount = standardCount;
-            }
-
-            int packageCount = countExistingPaths(packageDirectory, requiredPaths);
-            if (packageCount > bestCount) {
-                bestBase = packageDirectory.getCanonicalFile();
-                bestCount = packageCount;
+            addExistingTargetsAtBase(
+                    new File(packageDirectory, "files"), requiredPaths, discoveredTargets);
+            addExistingTargetsAtBase(packageDirectory, requiredPaths, discoveredTargets);
+            searchForExistingTargets(packageDirectory, requiredPaths, discoveredTargets);
+            if (discoveredTargets.size() == requiredPaths.length) {
+                break;
             }
         }
 
-        // Also supports vendor/custom layouts such as Android/<package>/xxxxxxx
-        // and versioned cache folders nested below the package directory.
-        for (File packageDirectory : packageDirectories) {
-            SearchResult discovered = searchForBestExistingSet(packageDirectory, requiredPaths);
-            if (discovered.count > bestCount) {
-                bestBase = discovered.base;
-                bestCount = discovered.count;
+        List<PayloadTarget> targets = new ArrayList<>();
+        for (String relativePath : requiredPaths) {
+            File target = discoveredTargets.get(relativePath);
+            if (target != null) {
+                targets.add(new PayloadTarget(relativePath, target));
             }
         }
-        return bestCount > 0 ? bestBase : null;
+        return targets;
     }
 
     private List<File> findPackageDirectories(String packageName, File source) throws IOException {
@@ -153,8 +146,8 @@ public class ShizukuFileService extends IShizukuFileService.Stub {
         }
 
         for (File androidRoot : androidRoots) {
-            addPackageDirectory(results, seen, new File(androidRoot, packageName), packageName);
             addPackageDirectory(results, seen, new File(androidRoot, "data/" + packageName), packageName);
+            addPackageDirectory(results, seen, new File(androidRoot, packageName), packageName);
             addPackageDirectory(results, seen, new File(androidRoot, "media/" + packageName), packageName);
             addPackageDirectory(results, seen, new File(androidRoot, "obb/" + packageName), packageName);
 
@@ -202,29 +195,23 @@ public class ShizukuFileService extends IShizukuFileService.Stub {
         }
     }
 
-    private SearchResult searchForBestExistingSet(File packageDirectory, String[] requiredPaths)
+    private void searchForExistingTargets(File packageDirectory, String[] requiredPaths,
+                                          Map<String, File> discoveredTargets)
             throws IOException {
         ArrayDeque<SearchNode> queue = new ArrayDeque<>();
         Set<String> visited = new HashSet<>();
         queue.add(new SearchNode(packageDirectory.getCanonicalFile(), 0));
-        File bestBase = null;
-        int bestCount = 0;
 
-        while (!queue.isEmpty() && visited.size() < 12000) {
+        while (!queue.isEmpty()
+                && visited.size() < 12000
+                && discoveredTargets.size() < requiredPaths.length) {
             SearchNode node = queue.removeFirst();
             String canonicalPath = node.file.getCanonicalPath();
             if (!visited.add(canonicalPath)) {
                 continue;
             }
 
-            int existingCount = countExistingPaths(node.file, requiredPaths);
-            if (existingCount > bestCount) {
-                bestBase = node.file.getCanonicalFile();
-                bestCount = existingCount;
-                if (bestCount == requiredPaths.length) {
-                    return new SearchResult(bestBase, bestCount);
-                }
-            }
+            addExistingTargetsAtBase(node.file, requiredPaths, discoveredTargets);
 
             if (node.depth >= 10) {
                 continue;
@@ -239,20 +226,23 @@ public class ShizukuFileService extends IShizukuFileService.Stub {
                 }
             }
         }
-        return new SearchResult(bestBase, bestCount);
     }
 
-    private int countExistingPaths(File base, String[] requiredPaths) {
+    private void addExistingTargetsAtBase(File base, String[] requiredPaths,
+                                          Map<String, File> discoveredTargets)
+            throws IOException {
         if (!base.isDirectory()) {
-            return 0;
+            return;
         }
-        int count = 0;
         for (String relativePath : requiredPaths) {
-            if (new File(base, relativePath).isFile()) {
-                count++;
+            if (discoveredTargets.containsKey(relativePath)) {
+                continue;
+            }
+            File candidate = new File(base, relativePath);
+            if (candidate.isFile()) {
+                discoveredTargets.put(relativePath, candidate.getCanonicalFile());
             }
         }
-        return count;
     }
 
     private boolean isSupportedPackage(String packageName) {
@@ -324,13 +314,13 @@ public class ShizukuFileService extends IShizukuFileService.Stub {
         }
     }
 
-    private static final class SearchResult {
-        final File base;
-        final int count;
+    private static final class PayloadTarget {
+        final String relativePath;
+        final File file;
 
-        SearchResult(File base, int count) {
-            this.base = base;
-            this.count = count;
+        PayloadTarget(String relativePath, File file) {
+            this.relativePath = relativePath;
+            this.file = file;
         }
     }
 
