@@ -80,15 +80,24 @@ public class ShizukuFileService extends IShizukuFileService.Stub {
         int markerIndex = sourcePathLower.indexOf(marker);
         if (markerIndex > 0) {
             String currentStorageRoot = sourcePath.substring(0, markerIndex);
-            File target = new File(currentStorageRoot,
-                    "Android/data/" + packageName + "/files").getCanonicalFile();
-            String normalizedTarget = target.getPath()
-                    .replace('\\', '/')
-                    .toLowerCase(java.util.Locale.ROOT);
-            String requiredSuffix = "/android/data/" + packageName.toLowerCase(
-                    java.util.Locale.ROOT) + "/files";
-            if (normalizedTarget.endsWith(requiredSuffix)) {
-                return target;
+            File packageDirectory = new File(currentStorageRoot,
+                    "Android/data/" + packageName).getCanonicalFile();
+            if (!packageDirectory.isDirectory()) {
+                packageDirectory = null;
+            }
+            File target = packageDirectory == null ? null
+                    : new File(packageDirectory, "files").getCanonicalFile();
+            if (target == null) {
+                // Continue with the OEM/adopted-storage scan below.
+            } else {
+                String normalizedTarget = target.getPath()
+                        .replace('\\', '/')
+                        .toLowerCase(java.util.Locale.ROOT);
+                String requiredSuffix = "/android/data/" + packageName.toLowerCase(
+                        java.util.Locale.ROOT) + "/files";
+                if (normalizedTarget.endsWith(requiredSuffix)) {
+                    return target;
+                }
             }
         }
 
@@ -174,7 +183,7 @@ public class ShizukuFileService extends IShizukuFileService.Stub {
     }
 
     private boolean isSupportedPackage(String packageName) {
-        return "com.dts.freefiremax".equals(packageName) || "com.dts.freefireth".equals(packageName);
+        return "com.dts.freefiremax".equals(packageName);
     }
 
     private boolean isSafeRelativePath(String path) {
