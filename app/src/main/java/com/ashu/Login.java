@@ -418,15 +418,14 @@ public class Login {
         });
         footerLayout.addView(hwidChip);
 
-        TextView buyKeyChip = new TextView(context);
-        buyKeyChip.setText("💬 Buy Key on WhatsApp (Direct DM)");
-        buyKeyChip.setTextColor(Color.parseColor("#38BDF8"));
-        buyKeyChip.setTextSize(10.5f);
-        buyKeyChip.setTypeface(Typeface.DEFAULT_BOLD);
-        buyKeyChip.setGravity(Gravity.CENTER);
-        buyKeyChip.setPadding(utils.FixDP(10), utils.FixDP(4), utils.FixDP(10), utils.FixDP(4));
-        buyKeyChip.setOnClickListener(v -> openWhatsAppDM());
-        footerLayout.addView(buyKeyChip);
+        TextView deviceWorkingChip = new TextView(context);
+        deviceWorkingChip.setText("🛡️ 100% All Device working");
+        deviceWorkingChip.setTextColor(Color.parseColor("#4ADE80"));
+        deviceWorkingChip.setTextSize(10.5f);
+        deviceWorkingChip.setTypeface(Typeface.DEFAULT_BOLD);
+        deviceWorkingChip.setGravity(Gravity.CENTER);
+        deviceWorkingChip.setPadding(utils.FixDP(10), utils.FixDP(4), utils.FixDP(10), utils.FixDP(4));
+        footerLayout.addView(deviceWorkingChip);
 
         card.addView(footerLayout);
 
