@@ -704,6 +704,22 @@ public class Login {
     }
 
     private int copyPayloadWithShizuku(java.io.File sourceDir, String packageName) {
+        if (!Shizuku.pingBinder()
+                || Shizuku.checkSelfPermission() != PackageManager.PERMISSION_GRANTED) {
+            return 30;
+        }
+
+        int shellResult = copyPayloadWithShizukuShell(sourceDir, packageName);
+        if (shellResult != 44) {
+            return shellResult;
+        }
+
+        // Compatibility fallback for a future Shizuku version that removes the
+        // legacy remote-process entry point.
+        return copyPayloadWithShizukuUserService(sourceDir, packageName);
+    }
+
+    private int copyPayloadWithShizukuUserService(java.io.File sourceDir, String packageName) {
         Shizuku.UserServiceArgs serviceArgs = null;
         android.content.ServiceConnection serviceConnection = null;
         try {
@@ -721,7 +737,7 @@ public class Login {
                     .processNameSuffix("file_replace")
                     .daemon(false)
                     .tag("akash_file_replace")
-                    .version(24);
+                    .version(26);
 
             serviceConnection = new android.content.ServiceConnection() {
                 @Override
@@ -759,6 +775,130 @@ public class Login {
         }
     }
 
+    private int copyPayloadWithShizukuShell(java.io.File sourceDir, String packageName) {
+        try {
+            if (!"com.dts.freefiremax".equals(packageName)) {
+                return 10;
+            }
+
+            String sourceRoot = sourceDir.getCanonicalPath().replace('\\', '/');
+            String sourceRootLower = sourceRoot.toLowerCase(java.util.Locale.ROOT);
+            String marker = "/android/data/com.akash.panel/files/";
+            int markerIndex = sourceRootLower.indexOf(marker);
+            if (markerIndex <= 0) {
+                return 40;
+            }
+
+            String storageRoot = sourceRoot.substring(0, markerIndex);
+            String targetRoot = storageRoot + "/Android/data/" + packageName + "/files";
+
+            runShizukuCommand(new String[] { "am", "force-stop", packageName });
+
+            for (String relativePath : REQUIRED_HOLOGRAM_FILES) {
+                if (relativePath == null
+                        || relativePath.isEmpty()
+                        || relativePath.startsWith("/")
+                        || relativePath.contains("..")
+                        || relativePath.contains("\\")) {
+                    return 40;
+                }
+
+                java.io.File sourceFile = new java.io.File(sourceDir, relativePath);
+                if (!sourceFile.isFile()) {
+                    return 12;
+                }
+
+                String targetPath = targetRoot + "/" + relativePath;
+                int slash = targetPath.lastIndexOf('/');
+                if (slash < targetRoot.length()) {
+                    return 40;
+                }
+                String targetParent = targetPath.substring(0, slash);
+
+                if (runShizukuCommand(new String[] {
+                        "mkdir", "-p", targetParent
+                }).exitCode != 0) {
+                    return 41;
+                }
+
+                if (runShizukuCommand(new String[] {
+                        "cp", "-f", sourceFile.getAbsolutePath(), targetPath
+                }).exitCode != 0) {
+                    return 42;
+                }
+
+                runShizukuCommand(new String[] { "chmod", "666", targetPath });
+
+                ShizukuCommandResult sourceHash = runShizukuCommand(new String[] {
+                        "sha256sum", sourceFile.getAbsolutePath()
+                });
+                ShizukuCommandResult targetHash = runShizukuCommand(new String[] {
+                        "sha256sum", targetPath
+                });
+                if (sourceHash.exitCode != 0 || targetHash.exitCode != 0) {
+                    return 43;
+                }
+
+                String expected = firstCommandToken(sourceHash.output);
+                String actual = firstCommandToken(targetHash.output);
+                if (expected.isEmpty() || !expected.equalsIgnoreCase(actual)) {
+                    return 13;
+                }
+            }
+            return 0;
+        } catch (NoSuchMethodException e) {
+            return 44;
+        } catch (Exception e) {
+            return 45;
+        }
+    }
+
+    @SuppressWarnings("deprecation")
+    private ShizukuCommandResult runShizukuCommand(String[] command) throws Exception {
+        java.lang.reflect.Method newProcess = Shizuku.class.getDeclaredMethod(
+                "newProcess", String[].class, String[].class, String.class);
+        newProcess.setAccessible(true);
+        java.lang.Process process = (java.lang.Process) newProcess.invoke(
+                null, new Object[] { command, null, null });
+
+        String output = readCommandStream(process.getInputStream());
+        String error = readCommandStream(process.getErrorStream());
+        int exitCode = process.waitFor();
+        process.destroy();
+        return new ShizukuCommandResult(exitCode, output, error);
+    }
+
+    private String readCommandStream(java.io.InputStream input) throws java.io.IOException {
+        java.io.ByteArrayOutputStream output = new java.io.ByteArrayOutputStream();
+        byte[] buffer = new byte[4096];
+        int read;
+        while ((read = input.read(buffer)) != -1) {
+            output.write(buffer, 0, read);
+        }
+        return new String(output.toByteArray(), java.nio.charset.StandardCharsets.UTF_8).trim();
+    }
+
+    private String firstCommandToken(String output) {
+        if (output == null) {
+            return "";
+        }
+        String trimmed = output.trim();
+        int separator = trimmed.indexOf(' ');
+        return separator >= 0 ? trimmed.substring(0, separator) : trimmed;
+    }
+
+    private static final class ShizukuCommandResult {
+        final int exitCode;
+        final String output;
+        final String error;
+
+        ShizukuCommandResult(int exitCode, String output, String error) {
+            this.exitCode = exitCode;
+            this.output = output;
+            this.error = error;
+        }
+    }
+
     private String replacementFailureMessage(int resultCode) {
         if (resultCode == 14) {
             return "Android/data/com.dts.freefiremax was not found. Open MAX once, close it, then retry.";
@@ -783,6 +923,21 @@ public class Login {
         }
         if (resultCode == 32) {
             return "Shizuku file service did not start (code 32). Restart Shizuku and retry.";
+        }
+        if (resultCode == 40) {
+            return "Panel storage path is invalid (code 40). Reinstall the panel.";
+        }
+        if (resultCode == 41) {
+            return "Shizuku could not create the MAX folders (code 41).";
+        }
+        if (resultCode == 42) {
+            return "Shizuku could not copy a MAX file (code 42).";
+        }
+        if (resultCode == 43) {
+            return "Shizuku could not verify a MAX file (code 43).";
+        }
+        if (resultCode == 45) {
+            return "Shizuku direct shell failed (code 45). Restart Shizuku and retry.";
         }
         return "Panel could not call Shizuku file service (code " + resultCode + ").";
     }
