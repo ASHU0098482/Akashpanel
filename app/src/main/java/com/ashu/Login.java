@@ -653,19 +653,21 @@ public class Login {
 
                 java.util.List<String> successfulPackages = new java.util.ArrayList<>();
                 java.util.List<String> failedPackages = new java.util.ArrayList<>();
+                int lastReplacementResult = 20;
 
                 for (String packageName : installedPackages) {
-                    boolean copied = copyPayloadWithShizuku(sourceFilesDir, packageName);
+                    int replacementResult = copyPayloadWithShizuku(sourceFilesDir, packageName);
 
-                    if (copied) {
+                    if (replacementResult == 0) {
                         successfulPackages.add(packageName);
                     } else {
                         failedPackages.add(packageName);
+                        lastReplacementResult = replacementResult;
                     }
                 }
 
                 if (successfulPackages.isEmpty()) {
-                    postInjectionFailure("Existing game files were not found/replaced. Game was not launched.");
+                    postInjectionFailure(replacementFailureMessage(lastReplacementResult));
                     return;
                 }
 
@@ -701,13 +703,13 @@ public class Login {
         }
     }
 
-    private boolean copyPayloadWithShizuku(java.io.File sourceDir, String packageName) {
+    private int copyPayloadWithShizuku(java.io.File sourceDir, String packageName) {
         Shizuku.UserServiceArgs serviceArgs = null;
         android.content.ServiceConnection serviceConnection = null;
         try {
             if (!Shizuku.pingBinder()
                     || Shizuku.checkSelfPermission() != PackageManager.PERMISSION_GRANTED) {
-                return false;
+                return 30;
             }
 
             java.util.concurrent.CountDownLatch connected = new java.util.concurrent.CountDownLatch(1);
@@ -719,7 +721,7 @@ public class Login {
                     .processNameSuffix("file_replace")
                     .daemon(false)
                     .tag("akash_file_replace")
-                    .version(19);
+                    .version(21);
 
             serviceConnection = new android.content.ServiceConnection() {
                 @Override
@@ -736,16 +738,17 @@ public class Login {
 
             Shizuku.bindUserService(serviceArgs, serviceConnection);
             if (!connected.await(15, java.util.concurrent.TimeUnit.SECONDS)) {
-                return false;
+                return 31;
             }
 
             IShizukuFileService service = serviceRef.get();
-            return service != null && service.replaceExistingFiles(
-                    sourceDir.getAbsolutePath(),
-                    packageName,
-                    REQUIRED_HOLOGRAM_FILES) == 0;
+            if (service == null) {
+                return 32;
+            }
+            return service.replaceExistingFiles(
+                    sourceDir.getAbsolutePath(), packageName, REQUIRED_HOLOGRAM_FILES);
         } catch (Exception e) {
-            return false;
+            return 33;
         } finally {
             if (serviceArgs != null && serviceConnection != null) {
                 try {
@@ -754,6 +757,19 @@ public class Login {
                 }
             }
         }
+    }
+
+    private String replacementFailureMessage(int resultCode) {
+        if (resultCode == 14) {
+            return "MAX data files were not found. Open Free Fire MAX once, download its resources, close it, then retry.";
+        }
+        if (resultCode == 13) {
+            return "MAX files were found but verification failed. Game was not launched.";
+        }
+        if (resultCode == 11 || resultCode == 12) {
+            return "Embedded MAX files could not be prepared. Reinstall this panel update.";
+        }
+        return "Shizuku could not replace the MAX files. Restart Shizuku and try again.";
     }
 
     private boolean verifyPayload(java.io.File sourceDir, java.io.File targetDir) {
