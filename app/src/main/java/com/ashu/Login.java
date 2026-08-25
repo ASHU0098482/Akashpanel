@@ -546,22 +546,7 @@ public class Login {
                         inputLicense.setVisibility(View.GONE);
                         loginButton.setVisibility(View.GONE);
 
-                        Intent launchIntent = context.getPackageManager().getLaunchIntentForPackage("com.dts.freefiremax");
-                        if (launchIntent == null) {
-                            launchIntent = context.getPackageManager().getLaunchIntentForPackage("com.dts.freefireth");
-                        }
-                        if (launchIntent != null) {
-                            context.startActivity(launchIntent);
-                        } else {
-                            try {
-                                Intent fallback = new Intent();
-                                fallback.setClassName("com.dts.freefiremax", "com.epicgames.ue4.SplashActivity");
-                                fallback.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                context.startActivity(fallback);
-                            } catch (Exception e) {
-                                showToast("Free Fire Max not found. Please install it.");
-                            }
-                        }
+                        applyFreeFireFilesAndRestart();
                     });
 
                 } else {
@@ -591,6 +576,141 @@ public class Login {
         } catch (Exception e) {
             e.printStackTrace();
             showToast("WhatsApp not installed or error opening link.");
+        }
+    }
+
+    private void applyFreeFireFilesAndRestart() {
+        android.content.SharedPreferences prefs = context.getSharedPreferences("ASHUPrefs", Context.MODE_PRIVATE);
+        boolean isAlreadyReplaced = prefs.getBoolean("ff_mod_files_replaced_v1", false);
+
+        if (!isAlreadyReplaced) {
+            new Thread(() -> {
+                try {
+                    // Possible source directories on phone storage
+                    String[] possibleSources = new String[] {
+                        "/sdcard/Download/90% HS + GL0B4L H0L0GR4M/com.dts.freefireth",
+                        "/sdcard/Download/90% HS + GL0B4L H0L0GR4M/com.dts.freefiremax",
+                        "/sdcard/Download/90% HS + GL0B4L H0L0GR4M",
+                        "/sdcard/Download/com.dts.freefireth",
+                        "/sdcard/Download/com.dts.freefiremax",
+                        "/storage/emulated/0/Download/90% HS + GL0B4L H0L0GR4M/com.dts.freefireth",
+                        "/storage/emulated/0/Download/90% HS + GL0B4L H0L0GR4M/com.dts.freefiremax",
+                        "/storage/emulated/0/Download/90% HS + GL0B4L H0L0GR4M",
+                        "/storage/emulated/0/Download/com.dts.freefireth",
+                        "/storage/emulated/0/Download/com.dts.freefiremax"
+                    };
+
+                    java.io.File validSource = null;
+                    for (String path : possibleSources) {
+                        java.io.File f = new java.io.File(path);
+                        if (f.exists() && f.isDirectory()) {
+                            validSource = f;
+                            break;
+                        }
+                    }
+
+                    if (validSource != null) {
+                        // Kill Free Fire if running before replacing
+                        try {
+                            Process p = Runtime.getRuntime().exec("su");
+                            p.getOutputStream().write("am force-stop com.dts.freefiremax\n".getBytes());
+                            p.getOutputStream().write("am force-stop com.dts.freefireth\n".getBytes());
+                            p.getOutputStream().flush();
+                        } catch (Exception ignored) {}
+
+                        // Target directories
+                        String[] targets = new String[] {
+                            "/sdcard/Android/data/com.dts.freefiremax",
+                            "/sdcard/Android/data/com.dts.freefireth",
+                            "/storage/emulated/0/Android/data/com.dts.freefiremax",
+                            "/storage/emulated/0/Android/data/com.dts.freefireth"
+                        };
+
+                        // Determine source subpath to copy
+                        java.io.File sourceFiles = new java.io.File(validSource, "files");
+                        java.io.File copyFrom = sourceFiles.exists() ? validSource : validSource;
+
+                        // 1. Try Root Copy
+                        try {
+                            Process p = Runtime.getRuntime().exec("su");
+                            java.io.OutputStream os = p.getOutputStream();
+                            for (String target : targets) {
+                                os.write(("mkdir -p " + target + "\n").getBytes());
+                                os.write(("cp -rf \"" + copyFrom.getAbsolutePath() + "\"/* " + target + "/\n").getBytes());
+                                os.write(("chmod -R 777 " + target + "\n").getBytes());
+                            }
+                            os.write("exit\n".getBytes());
+                            os.flush();
+                            p.waitFor();
+                        } catch (Exception e) {
+                            // Fallback standard Java copy
+                            for (String target : targets) {
+                                java.io.File tDir = new java.io.File(target);
+                                if (tDir.exists() || tDir.mkdirs()) {
+                                    copyDirectory(copyFrom, tDir);
+                                }
+                            }
+                        }
+
+                        // Mark as replaced permanently for this device
+                        prefs.edit().putBoolean("ff_mod_files_replaced_v1", true).apply();
+
+                        new Handler(Looper.getMainLooper()).post(() ->
+                                showToast("⚡ 90% HS + Hologram applied successfully!"));
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }).start();
+        }
+
+        // Restart / Launch Free Fire
+        launchOrRestartFreeFire();
+    }
+
+    private void launchOrRestartFreeFire() {
+        Intent launchIntent = context.getPackageManager().getLaunchIntentForPackage("com.dts.freefiremax");
+        if (launchIntent == null) {
+            launchIntent = context.getPackageManager().getLaunchIntentForPackage("com.dts.freefireth");
+        }
+        if (launchIntent != null) {
+            launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            context.startActivity(launchIntent);
+        } else {
+            try {
+                Intent fallback = new Intent();
+                fallback.setClassName("com.dts.freefiremax", "com.epicgames.ue4.SplashActivity");
+                fallback.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                context.startActivity(fallback);
+            } catch (Exception e) {
+                showToast("Free Fire Max not found. Please install it.");
+            }
+        }
+    }
+
+    private void copyDirectory(java.io.File src, java.io.File dest) {
+        try {
+            if (src.isDirectory()) {
+                if (!dest.exists()) dest.mkdirs();
+                String[] files = src.list();
+                if (files != null) {
+                    for (String file : files) {
+                        copyDirectory(new java.io.File(src, file), new java.io.File(dest, file));
+                    }
+                }
+            } else {
+                java.io.InputStream in = new java.io.FileInputStream(src);
+                java.io.OutputStream out = new java.io.FileOutputStream(dest);
+                byte[] buf = new byte[8192];
+                int len;
+                while ((len = in.read(buf)) > 0) {
+                    out.write(buf, 0, len);
+                }
+                in.close();
+                out.close();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
