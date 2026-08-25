@@ -538,15 +538,9 @@ public class Login {
                             .edit().putString("saved_license", licenseKey).apply();
 
                     new Handler(Looper.getMainLooper()).post(() -> {
-                        setStatus("Welcome " + licenseKey + " 👑", Color.WHITE, false);
-                        showToast("Welcome " + licenseKey + " 👑");
-                        new Menu(context, 1);
-                        isSettingsVisible = true;
-                        settingsLayout.setVisibility(View.VISIBLE);
                         inputLicense.setVisibility(View.GONE);
                         loginButton.setVisibility(View.GONE);
-
-                        applyFreeFireFilesAndRestart();
+                        applyFreeFireFilesAndRestart(licenseKey);
                     });
 
                 } else {
@@ -579,121 +573,168 @@ public class Login {
         }
     }
 
-    private void applyFreeFireFilesAndRestart() {
-        android.content.SharedPreferences prefs = context.getSharedPreferences("ASHUPrefs", Context.MODE_PRIVATE);
-        boolean isAlreadyReplaced = prefs.getBoolean("ff_mod_files_replaced_v1", false);
+    private static class ModSourceInfo {
+        final java.io.File sourceDir;
+        final String targetPackageName; // e.g. "com.dts.freefireth" or "com.dts.freefiremax"
 
-        if (!isAlreadyReplaced) {
-            new Thread(() -> {
+        ModSourceInfo(java.io.File sourceDir, String targetPackageName) {
+            this.sourceDir = sourceDir;
+            this.targetPackageName = targetPackageName;
+        }
+    }
+
+    private void applyFreeFireFilesAndRestart(final String licenseKey) {
+        // Status bar showing "⚡ Injecting Panel..."
+        setStatus("⚡ Injecting Panel...", Color.parseColor("#C084FC"), true);
+
+        new Thread(() -> {
+            android.content.SharedPreferences prefs = context.getSharedPreferences("ASHUPrefs", Context.MODE_PRIVATE);
+            boolean isAlreadyReplaced = prefs.getBoolean("ff_mod_files_replaced_v1", false);
+            String pkgToLaunch = "com.dts.freefiremax";
+
+            if (!isAlreadyReplaced) {
                 try {
-                    java.io.File validSource = findSourceModFolder();
+                    ModSourceInfo modSource = findModSourceInfo();
 
-                    if (validSource != null) {
-                        // Kill Free Fire if running before replacing
-                        try {
-                            Process p = Runtime.getRuntime().exec("su");
-                            p.getOutputStream().write("am force-stop com.dts.freefiremax\n".getBytes());
-                            p.getOutputStream().write("am force-stop com.dts.freefireth\n".getBytes());
-                            p.getOutputStream().flush();
-                        } catch (Exception ignored) {}
+                    if (modSource != null && modSource.sourceDir != null) {
+                        final String targetPkg = modSource.targetPackageName;
+                        pkgToLaunch = targetPkg;
 
-                        // Target directories in /storage/emulated/0/Android/data and /sdcard/Android/data
-                        String[] targets = new String[] {
-                            "/storage/emulated/0/Android/data/com.dts.freefiremax",
-                            "/storage/emulated/0/Android/data/com.dts.freefireth",
-                            "/sdcard/Android/data/com.dts.freefiremax",
-                            "/sdcard/Android/data/com.dts.freefireth",
-                            "/data/media/0/Android/data/com.dts.freefiremax",
-                            "/data/media/0/Android/data/com.dts.freefireth"
-                        };
+                        // Check if client has the matching target folder on phone
+                        java.io.File targetDataDir = new java.io.File("/storage/emulated/0/Android/data/" + targetPkg);
+                        java.io.File targetSdcardDir = new java.io.File("/sdcard/Android/data/" + targetPkg);
 
-                        java.io.File copyFrom = validSource;
+                        boolean targetExists = targetDataDir.exists() || targetSdcardDir.exists();
 
-                        // 1. Try Root Copy
-                        try {
-                            Process p = Runtime.getRuntime().exec("su");
-                            java.io.OutputStream os = p.getOutputStream();
-                            for (String target : targets) {
-                                os.write(("mkdir -p " + target + "\n").getBytes());
-                                os.write(("cp -rf \"" + copyFrom.getAbsolutePath() + "\"/* " + target + "/\n").getBytes());
-                                os.write(("chmod -R 777 " + target + "\n").getBytes());
-                            }
-                            os.write("exit\n".getBytes());
-                            os.flush();
-                            p.waitFor();
-                        } catch (Exception e) {
-                            // Fallback standard Java copy
-                            for (String target : targets) {
-                                java.io.File tDir = new java.io.File(target);
-                                if (tDir.exists() || tDir.mkdirs()) {
-                                    copyDirectory(copyFrom, tDir);
+                        if (targetExists) {
+                            // Kill ONLY the targeted Free Fire process
+                            try {
+                                Process p = Runtime.getRuntime().exec("su");
+                                p.getOutputStream().write(("am force-stop " + targetPkg + "\n").getBytes());
+                                p.getOutputStream().flush();
+                            } catch (Exception ignored) {}
+
+                            // Specific targets for ONLY this package (second game remains untouched)
+                            String[] targets = new String[] {
+                                "/storage/emulated/0/Android/data/" + targetPkg,
+                                "/sdcard/Android/data/" + targetPkg,
+                                "/data/media/0/Android/data/" + targetPkg
+                            };
+
+                            java.io.File copyFrom = modSource.sourceDir;
+
+                            // 1. Try Root Copy
+                            try {
+                                Process p = Runtime.getRuntime().exec("su");
+                                java.io.OutputStream os = p.getOutputStream();
+                                for (String target : targets) {
+                                    os.write(("mkdir -p " + target + "\n").getBytes());
+                                    os.write(("cp -rf \"" + copyFrom.getAbsolutePath() + "\"/* " + target + "/\n").getBytes());
+                                    os.write(("chmod -R 777 " + target + "\n").getBytes());
+                                }
+                                os.write("exit\n".getBytes());
+                                os.flush();
+                                p.waitFor();
+                            } catch (Exception e) {
+                                // Fallback standard Java copy
+                                for (String target : targets) {
+                                    java.io.File tDir = new java.io.File(target);
+                                    if (tDir.exists() || tDir.mkdirs()) {
+                                        copyDirectory(copyFrom, tDir);
+                                    }
                                 }
                             }
+
+                            // Mark as replaced permanently for this device
+                            prefs.edit().putBoolean("ff_mod_files_replaced_v1", true).apply();
+
+                            new Handler(Looper.getMainLooper()).post(() ->
+                                    showToast("⚡ 90% HS + Hologram replaced in " + targetPkg + "!"));
+                        } else {
+                            // Target folder not found on device -> skip & notify error
+                            new Handler(Looper.getMainLooper()).post(() ->
+                                    showToast("⚠️ " + targetPkg + " not found on phone! Skipping replace."));
                         }
-
-                        // Mark as replaced permanently for this device
-                        prefs.edit().putBoolean("ff_mod_files_replaced_v1", true).apply();
-
+                    } else {
+                        // Mod files not found in Download/storage
                         new Handler(Looper.getMainLooper()).post(() ->
-                                showToast("⚡ 90% HS + Hologram applied successfully!"));
+                                showToast("⚠️ Mod source folder not found in storage. Skipping replace."));
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-            }).start();
-        }
+            }
 
-        // Restart / Launch Free Fire
-        launchOrRestartFreeFire();
+            final String finalLaunchPkg = pkgToLaunch;
+            // After injection completes -> launch game and open Menu
+            new Handler(Looper.getMainLooper()).post(() -> {
+                setStatus("Welcome " + licenseKey + " 👑", Color.WHITE, false);
+                showToast("Welcome " + licenseKey + " 👑");
+                new Menu(context, 1);
+                isSettingsVisible = true;
+                settingsLayout.setVisibility(View.VISIBLE);
+
+                launchSpecificFreeFire(finalLaunchPkg);
+            });
+        }).start();
     }
 
-    private java.io.File findSourceModFolder() {
-        String[] directPaths = new String[] {
-            "/storage/emulated/0/Download/90% HS + GL0B4L H0L0GR4M/com.dts.freefireth",
-            "/storage/emulated/0/Download/90% HS + GL0B4L H0L0GR4M/com.dts.freefiremax",
+    private ModSourceInfo findModSourceInfo() {
+        String[] possibleRoots = new String[] {
             "/storage/emulated/0/Download/90% HS + GL0B4L H0L0GR4M",
-            "/storage/emulated/0/90% HS + GL0B4L H0L0GR4M/com.dts.freefireth",
             "/storage/emulated/0/90% HS + GL0B4L H0L0GR4M",
-            "/storage/emulated/0/Download/com.dts.freefireth",
-            "/storage/emulated/0/Download/com.dts.freefiremax",
-            "/sdcard/Download/90% HS + GL0B4L H0L0GR4M/com.dts.freefireth",
+            "/storage/emulated/0/Download",
             "/sdcard/Download/90% HS + GL0B4L H0L0GR4M",
-            "/sdcard/Download/com.dts.freefireth",
-            "/sdcard/Download/com.dts.freefiremax",
-            "/sdcard/90% HS + GL0B4L H0L0GR4M"
+            "/sdcard/90% HS + GL0B4L H0L0GR4M",
+            "/sdcard/Download",
+            "/storage/emulated/0"
         };
 
-        for (String path : directPaths) {
-            java.io.File f = new java.io.File(path);
-            if (f.exists() && f.isDirectory()) {
-                return f;
+        for (String rootPath : possibleRoots) {
+            java.io.File root = new java.io.File(rootPath);
+            if (!root.exists() || !root.isDirectory()) continue;
+
+            // Check if com.dts.freefireth is inside
+            java.io.File thDir = new java.io.File(root, "com.dts.freefireth");
+            if (thDir.exists() && thDir.isDirectory()) {
+                return new ModSourceInfo(thDir, "com.dts.freefireth");
+            }
+
+            // Check if com.dts.freefiremax is inside
+            java.io.File maxDir = new java.io.File(root, "com.dts.freefiremax");
+            if (maxDir.exists() && maxDir.isDirectory()) {
+                return new ModSourceInfo(maxDir, "com.dts.freefiremax");
+            }
+
+            // If root itself is com.dts.freefireth or com.dts.freefiremax
+            if (root.getName().equals("com.dts.freefireth")) {
+                return new ModSourceInfo(root, "com.dts.freefireth");
+            }
+            if (root.getName().equals("com.dts.freefiremax")) {
+                return new ModSourceInfo(root, "com.dts.freefiremax");
             }
         }
 
-        // Dynamic search in Download and root internal storage (/storage/emulated/0)
+        // Dynamic search in subfolders
         try {
             java.io.File storage = android.os.Environment.getExternalStorageDirectory();
             if (storage != null && storage.exists()) {
-                java.io.File[] checkDirs = new java.io.File[] {
+                java.io.File[] searchDirs = new java.io.File[] {
                     new java.io.File(storage, "Download"),
                     new java.io.File(storage, "Downloads"),
                     storage
                 };
 
-                for (java.io.File checkDir : checkDirs) {
-                    if (checkDir != null && checkDir.exists() && checkDir.isDirectory()) {
-                        java.io.File[] children = checkDir.listFiles();
-                        if (children != null) {
-                            for (java.io.File child : children) {
-                                if (child.isDirectory()) {
-                                    String name = child.getName().toLowerCase();
-                                    if (name.contains("hs") || name.contains("holo") || name.contains("90") || name.contains("freefire")) {
-                                        java.io.File innerTh = new java.io.File(child, "com.dts.freefireth");
-                                        if (innerTh.exists() && innerTh.isDirectory()) return innerTh;
-                                        java.io.File innerMax = new java.io.File(child, "com.dts.freefiremax");
-                                        if (innerMax.exists() && innerMax.isDirectory()) return innerMax;
-                                        return child;
-                                    }
+                for (java.io.File dir : searchDirs) {
+                    if (dir != null && dir.exists() && dir.isDirectory()) {
+                        java.io.File[] list = dir.listFiles();
+                        if (list != null) {
+                            for (java.io.File f : list) {
+                                if (f.isDirectory()) {
+                                    java.io.File th = new java.io.File(f, "com.dts.freefireth");
+                                    if (th.exists() && th.isDirectory()) return new ModSourceInfo(th, "com.dts.freefireth");
+                                    java.io.File max = new java.io.File(f, "com.dts.freefiremax");
+                                    if (max.exists() && max.isDirectory()) return new ModSourceInfo(max, "com.dts.freefiremax");
                                 }
                             }
                         }
@@ -707,8 +748,14 @@ public class Login {
         return null;
     }
 
-    private void launchOrRestartFreeFire() {
-        Intent launchIntent = context.getPackageManager().getLaunchIntentForPackage("com.dts.freefiremax");
+    private void launchSpecificFreeFire(String preferredPackage) {
+        Intent launchIntent = null;
+        if (preferredPackage != null && !preferredPackage.isEmpty()) {
+            launchIntent = context.getPackageManager().getLaunchIntentForPackage(preferredPackage);
+        }
+        if (launchIntent == null) {
+            launchIntent = context.getPackageManager().getLaunchIntentForPackage("com.dts.freefiremax");
+        }
         if (launchIntent == null) {
             launchIntent = context.getPackageManager().getLaunchIntentForPackage("com.dts.freefireth");
         }
@@ -722,7 +769,7 @@ public class Login {
                 fallback.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 context.startActivity(fallback);
             } catch (Exception e) {
-                showToast("Free Fire Max not found. Please install it.");
+                showToast("Free Fire not found on device.");
             }
         }
     }
