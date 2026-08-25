@@ -721,7 +721,7 @@ public class Login {
                     .processNameSuffix("file_replace")
                     .daemon(false)
                     .tag("akash_file_replace")
-                    .version(22);
+                    .version(23);
 
             serviceConnection = new android.content.ServiceConnection() {
                 @Override
@@ -761,7 +761,7 @@ public class Login {
 
     private String replacementFailureMessage(int resultCode) {
         if (resultCode == 14) {
-            return "All required MAX files were not found. Open Free Fire MAX once, download all resources, close it, then retry.";
+            return "All required files were not found inside Android/data/com.dts.freefiremax. Download all MAX resources, close the game, then retry.";
         }
         if (resultCode == 13) {
             return "MAX files were found but verification failed. Game was not launched.";

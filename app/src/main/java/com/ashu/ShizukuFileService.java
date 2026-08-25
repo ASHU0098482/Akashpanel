@@ -147,23 +147,6 @@ public class ShizukuFileService extends IShizukuFileService.Stub {
 
         for (File androidRoot : androidRoots) {
             addPackageDirectory(results, seen, new File(androidRoot, "data/" + packageName), packageName);
-            addPackageDirectory(results, seen, new File(androidRoot, packageName), packageName);
-            addPackageDirectory(results, seen, new File(androidRoot, "media/" + packageName), packageName);
-            addPackageDirectory(results, seen, new File(androidRoot, "obb/" + packageName), packageName);
-
-            File[] firstLevel = androidRoot.listFiles();
-            if (firstLevel == null) {
-                continue;
-            }
-            for (File child : firstLevel) {
-                if (!child.isDirectory()) {
-                    continue;
-                }
-                if (packageName.equals(child.getName())) {
-                    addPackageDirectory(results, seen, child, packageName);
-                }
-                addPackageDirectory(results, seen, new File(child, packageName), packageName);
-            }
         }
         return results;
     }
@@ -189,7 +172,7 @@ public class ShizukuFileService extends IShizukuFileService.Stub {
         String path = canonical.getPath();
         String normalizedPath = path.replace('\\', '/').toLowerCase(java.util.Locale.ROOT);
         if (packageName.equals(canonical.getName())
-                && normalizedPath.contains("/android/")
+                && normalizedPath.contains("/android/data/")
                 && seen.add(path)) {
             results.add(canonical);
         }
